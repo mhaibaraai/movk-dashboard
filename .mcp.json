@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "nuxt": {
+      "type": "http",
+      "url": "https://nuxt.com/mcp"
+    },
+    "@nuxt/ui": {
+      "type": "http",
+      "url": "https://ui.nuxt.com/mcp"
+    },
+
+    "@movk/nuxt": {
+      "type": "http",
+      "url": "https://nuxt.mhaibaraai.cn/mcp"
+    },
+    "@movk/core": {
+      "type": "http",
+      "url": "https://core.mhaibaraai.cn/mcp"
+    },
+    "Movk RBAC API": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "apifox-mcp-server@latest",
+        "--project-id=7808620"
+      ],
+      "env": {
+        "APIFOX_ACCESS_TOKEN": "APS-vN18DsNmoYjohVnq05TPA3yD7Yku0nd0"
+      }
+    }
+  }
+}

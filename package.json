@@ -1,0 +1,39 @@
+{
+  "name": "@movk/dashboard",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.5.2",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "cross-env TMPDIR=/tmp nuxt dev",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "nuxt typecheck",
+    "clean": "movk-clean"
+  },
+  "dependencies": {
+    "@iconify-json/lucide": "^1.2.111",
+    "@iconify-json/simple-icons": "^1.2.85",
+    "@movk/core": "^1.3.0",
+    "@movk/nuxt": "https://pkg.pr.new/@movk/nuxt@1977d11",
+    "@nuxt/ui": "^4.8.2",
+    "@vueuse/nuxt": "^14.3.0",
+    "cookie-es": "^2.0.1",
+    "nuxt": "^4.4.7",
+    "tailwindcss": "^4.3.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@nuxt/eslint": "^1.15.2",
+    "@types/node": "^25.9.2",
+    "cross-env": "^10.1.0",
+    "eslint": "^10.4.1",
+    "typescript": "^6.0.3",
+    "vue-tsc": "^3.3.4"
+  }
+}
