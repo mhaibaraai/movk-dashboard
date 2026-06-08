@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { RoleCreateReq, RoleUpdateReq } from '~/api/modules/system/role/types'
+import type { RoleCreateReq, RoleUpdateReq } from '~/api/system/role'
 import { ENABLED_DISABLED_COLOR, ENABLED_DISABLED_LABEL } from '~/constants/system'
 
 const {

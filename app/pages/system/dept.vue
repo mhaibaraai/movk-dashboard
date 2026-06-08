@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DeptCreateReq, DeptUpdateReq } from '~/api/modules/system/dept/types'
+import type { DeptCreateReq, DeptUpdateReq } from '~/api/system/dept'
 
 const { tree, pending, handleCreate, handleUpdate, handleDelete, getDetail } = useDeptTree()
 

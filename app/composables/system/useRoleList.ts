@@ -1,5 +1,5 @@
-import { useRoleApi } from '~/api/modules/system/role'
-import type { RoleListQuery, RoleCreateReq, RoleUpdateReq } from '~/api/modules/system/role/types'
+import { useRoleApi } from '~/api/system/role'
+import type { RoleListQuery, RoleCreateReq, RoleUpdateReq } from '~/api/system/role'
 
 export function useRoleList() {
   const roleApi = useRoleApi()

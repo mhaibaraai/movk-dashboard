@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { MenuCreateReq, MenuUpdateReq } from '~/api/modules/system/menu/types'
+import type { MenuCreateReq, MenuUpdateReq } from '~/api/system/menu'
 import type { MenuType } from '#shared/types/system'
 
 const { tree, pending, handleCreate, handleUpdate, handleDelete, getDetail } = useMenuTree()
