@@ -1,18 +1,25 @@
 <script lang="ts" setup>
+import type { CommandPaletteGroup, CommandPaletteItem } from '@nuxt/ui'
+
 const route = useRoute()
 
 const open = ref(false)
 
-const { navigation } = useNavigation()
+const { navigation, groups } = useNavigation()
 
 watch(() => route.path, () => {
   open.value = false
 })
 
-const groups = computed(() => [{
+const searchGroups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [{
   id: 'links',
   label: '前往',
-  items: navigation.flat()
+  items: navigation.flat().map(item => ({
+    label: item.label,
+    icon: item.icon,
+    to: item.to,
+    target: item.target
+  }))
 }, {
   id: 'code',
   label: '代码',
@@ -44,9 +51,9 @@ const groups = computed(() => [{
       <template #default="{ collapsed }">
         <UDashboardSearchButton :collapsed="collapsed" class="bg-transparent ring-default" />
 
-        <UNavigationMenu :collapsed="collapsed" :items="navigation[0]" orientation="vertical" tooltip popover />
+        <UNavigationMenu :collapsed="collapsed" :items="groups[0]" orientation="vertical" tooltip popover />
 
-        <UNavigationMenu :collapsed="collapsed" :items="navigation[1]" orientation="vertical" tooltip class="mt-auto" />
+        <UNavigationMenu :collapsed="collapsed" :items="groups[1]" orientation="vertical" tooltip class="mt-auto" />
       </template>
 
       <template #footer="{ collapsed }">
@@ -54,7 +61,7 @@ const groups = computed(() => [{
       </template>
     </UDashboardSidebar>
 
-    <UDashboardSearch :groups="groups" />
+    <UDashboardSearch :groups="searchGroups" />
 
     <slot />
   </UDashboardGroup>

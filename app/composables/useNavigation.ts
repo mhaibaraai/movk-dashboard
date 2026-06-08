@@ -26,6 +26,11 @@ export function useNavigation() {
             to: '/system/role'
           },
           {
+            label: '岗位管理',
+            icon: 'i-lucide-briefcase',
+            to: '/system/post'
+          },
+          {
             label: '部门管理',
             icon: 'i-lucide-building-2',
             to: '/system/dept'
@@ -54,9 +59,19 @@ export function useNavigation() {
     ]
   ]
 
-  const systemLinks = computed<NavigationMenuItem[]>(() =>
-    navigation.flat().find(item => item.to === '/system')?.children ?? []
+  const groups = navigation.map(group =>
+    group.map(item =>
+      item.children
+        ? { ...item, children: item.children.map(({ icon: _icon, ...rest }) => rest) }
+        : item
+    )
   )
 
-  return { navigation, systemLinks }
+  function getLinks(id: string): NavigationMenuItem[] {
+    return navigation.flat().find(item => item.to === `/${id}`)?.children ?? []
+  }
+
+  const systemLinks = getLinks('system')
+
+  return { navigation, groups, systemLinks }
 }
