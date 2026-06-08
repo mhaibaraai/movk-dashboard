@@ -21,3 +21,9 @@ export const ENABLED_DISABLED_LABEL: Record<string, string> = {
   ENABLED: '启用',
   DISABLED: '禁用'
 }
+
+export const USER_GENDER_LABEL: Record<string, string> = {
+  UNKNOWN: '未知',
+  MALE: '男',
+  FEMALE: '女'
+}
