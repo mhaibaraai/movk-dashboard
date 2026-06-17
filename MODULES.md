@@ -14,7 +14,7 @@
 | system | [部门管理 dept](#部门管理-dept) | 树 | 已实现 |
 | system | [岗位管理 post](#岗位管理-post) | 全量 list | 已实现 |
 | system | [字典管理 dict](#字典管理-dict) | 主从双 list | 待实现 |
-| system | [系统配置 config](#系统配置-config) | 全量 list | 待实现 |
+| system | [系统配置 config](#系统配置-config) | 全量 list | 已实现 |
 | system | [通知公告 notice](#通知公告-notice) | 分页 | 待实现 |
 | system | [文件管理 file](#文件管理-file) | 分页 | 待实现 |
 | monitor | [操作日志 operate-log](#操作日志-operate-log) | 分页（只读） | 待实现 |
