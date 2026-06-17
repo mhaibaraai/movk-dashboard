@@ -13,6 +13,8 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "seed": "node scripts/seed.mjs",
+    "seed:more": "node scripts/seed.mjs batch",
     "typecheck": "nuxt typecheck",
     "clean": "movk-clean"
   },
