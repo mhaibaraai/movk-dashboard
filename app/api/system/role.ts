@@ -49,7 +49,7 @@ export function useRoleApi() {
       $api('/v1/system/roles', { method: 'DELETE', body: ids }),
 
     getById: (id: string) =>
-      $api<RoleResp>(`/v1/system/roles/${id}`),
+      $api<RoleResp>(`/v1/system/roles/${id}`, { context: { toast: false } }),
 
     assignMenus: (roleId: string, menuIds: string[]) =>
       $api(`/v1/system/roles/${roleId}/menus`, { method: 'POST', body: menuIds })

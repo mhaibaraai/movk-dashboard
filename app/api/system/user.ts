@@ -64,7 +64,7 @@ export function useUserApi() {
       $api('/v1/system/users/reset-password', { method: 'PUT', body }),
 
     getById: (id: string) =>
-      $api<UserDetailResp>(`/v1/system/users/${id}`),
+      $api<UserDetailResp>(`/v1/system/users/${id}`, { context: { toast: false } }),
 
     assignRoles: (userId: string, roleIds: string[]) =>
       $api(`/v1/system/users/${userId}/roles`, { method: 'POST', body: roleIds }),

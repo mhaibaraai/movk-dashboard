@@ -31,6 +31,6 @@ export function useMenuApi() {
       $api(`/v1/system/menus/${id}`, { method: 'DELETE' }),
 
     getById: (id: string) =>
-      $api<MenuResp>(`/v1/system/menus/${id}`)
+      $api<MenuResp>(`/v1/system/menus/${id}`, { context: { toast: false } })
   }
 }

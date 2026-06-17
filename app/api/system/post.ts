@@ -18,7 +18,7 @@ export function usePostApi() {
 
   return {
     getList: () =>
-      $api<PostResp[]>('/v1/system/posts'),
+      $api<PostResp[]>('/v1/system/posts', { context: { toast: false } }),
 
     create: (body: PostCreateReq) =>
       $api<string>('/v1/system/posts', { method: 'POST', body }),
@@ -30,6 +30,6 @@ export function usePostApi() {
       $api(`/v1/system/posts/${id}`, { method: 'DELETE' }),
 
     getById: (id: string) =>
-      $api<PostResp>(`/v1/system/posts/${id}`)
+      $api<PostResp>(`/v1/system/posts/${id}`, { context: { toast: false } })
   }
 }
