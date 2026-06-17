@@ -157,6 +157,15 @@ function toggleExpandAll() {
 - 库源码在 `/Users/yixuanmiao/Projects/movk-nuxt`。属于库的 bug（如 AutoForm 校验行为）**在库源头修复**，经 `pkg.pr.new`（CI 在推送后构建）发布新版本后，再把 dashboard 的 `@movk/nuxt` 依赖 bump 到新构建消费，不在 dashboard 做长期 workaround。
 - 实现新模块前，用 MCP `read_project_oas_ref_resources_odlgm9` 拉后端 schema，把类型落到 `shared/types/system.ts`。
 
+## 演示数据（seed）
+
+`scripts/seed.mjs` 通过后端 HTTP API 灌入演示数据，目标后端取 `NUXT_API_BASE`（缺省回退 dashboard 的 `.env` 远程地址），用 `admin@movk.com` 登录拿 token。原生 `fetch` / `FormData`，无额外依赖（Node ≥20）。
+
+- `pnpm seed`：**基础模式**，按依赖顺序灌入 system 全域（部门/岗位/菜单/角色/用户/字典/配置/公告/文件）并顺带产生 monitor 日志。幂等：按唯一键判重（岗位 `postCode` 大小写不敏感以复用内置项），重复运行只「跳过」不重复。
+- `pnpm seed:more [count]`：**追加模式**，按时间戳批次生成全新唯一数据（用户/公告/文件 + 登录活动），可重复执行不断累积，`count` 控制本批用户数（默认 20）。
+- 环境变量：`NUXT_API_BASE`、`SEED_ADMIN_EMAIL`、`SEED_ADMIN_PASSWORD`；种子用户统一密码 `Movk@2025#Seed`（仅演示）。
+- monitor 域（操作/登录日志、在线用户）无写端点，由脚本的写操作与多账号登录顺带产生。
+
 ## 约定
 
 - 不可变更新（spread，勿原地改对象/数组）。
