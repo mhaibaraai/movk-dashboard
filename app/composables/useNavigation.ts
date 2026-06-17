@@ -61,6 +61,30 @@ export function useNavigation() {
             to: '/system/file'
           }
         ]
+      },
+      {
+        label: '系统监控',
+        icon: 'i-lucide-activity',
+        to: '/monitor',
+        type: 'trigger',
+        defaultOpen: true,
+        children: [
+          {
+            label: '操作日志',
+            icon: 'i-lucide-scroll-text',
+            to: '/monitor/operate-log'
+          },
+          {
+            label: '登录日志',
+            icon: 'i-lucide-log-in',
+            to: '/monitor/login-log'
+          },
+          {
+            label: '在线用户',
+            icon: 'i-lucide-users-round',
+            to: '/monitor/online-user'
+          }
+        ]
       }
     ],
     [
@@ -92,6 +116,7 @@ export function useNavigation() {
   }
 
   const systemLinks = getLinks('system')
+  const monitorLinks = getLinks('monitor')
 
-  return { navigation, groups, systemLinks }
+  return { navigation, groups, systemLinks, monitorLinks }
 }
