@@ -49,6 +49,11 @@ export function useNavigation() {
             label: '系统配置',
             icon: 'i-lucide-settings-2',
             to: '/system/config'
+          },
+          {
+            label: '通知公告',
+            icon: 'i-lucide-megaphone',
+            to: '/system/notice'
           }
         ]
       }

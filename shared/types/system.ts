@@ -156,3 +156,19 @@ export interface ConfigResp {
   createdAt: string
   updatedAt: string
 }
+
+// ─── 通知公告 ───────────────────────────────────────
+
+export type NoticeType = 'NOTICE' | 'ANNOUNCEMENT'
+export type NoticeStatus = 'ENABLED' | 'DISABLED'
+
+export interface NoticeResp {
+  id: string
+  noticeTitle: string
+  noticeType: NoticeType
+  noticeContent: string | null
+  status: NoticeStatus
+  creator: string | null
+  createdAt: string
+  updatedAt: string
+}

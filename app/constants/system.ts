@@ -56,6 +56,16 @@ export const CONFIG_TYPE_LABEL: Record<string, string> = {
   CUSTOM: '自定义'
 }
 
+export const NOTICE_TYPE_COLOR: Record<string, 'info' | 'warning'> = {
+  NOTICE: 'info',
+  ANNOUNCEMENT: 'warning'
+}
+
+export const NOTICE_TYPE_LABEL: Record<string, string> = {
+  NOTICE: '通知',
+  ANNOUNCEMENT: '公告'
+}
+
 // 字典数据 listClass 映射到 UBadge 颜色，未知回退 neutral
 export const DICT_LIST_CLASS_COLOR: Record<string, 'primary' | 'success' | 'info' | 'warning' | 'error' | 'neutral'> = {
   primary: 'primary',
