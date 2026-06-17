@@ -166,4 +166,4 @@ function toggleExpandAll() {
 
 ## 模块设计文档
 
-各业务模块的逐一设计见 `docs/modules/<name>.md`（落地顺序 Phase 2 → 3 → 4）。
+全部业务模块的统一需求与设计基准见根目录 `MODULES.md`（按 system / monitor 两域组织，含端点、类型、UI 设计与边界）。

@@ -15,5 +15,5 @@ pnpm typecheck   # nuxi typecheck
 ## 速记
 
 - 参考实现：`app/pages/system/user.vue`。
-- 模块逐一设计：`docs/modules/<name>.md`。
+- 模块统一设计：`MODULES.md`（root）。
 - 属于 `@movk/nuxt` 的问题在库源头（`/Users/yixuanmiao/Projects/movk-nuxt`）修复并经 pkg.pr.new 发布后再升级消费。
