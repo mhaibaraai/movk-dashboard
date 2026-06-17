@@ -54,6 +54,11 @@ export function useNavigation() {
             label: '通知公告',
             icon: 'i-lucide-megaphone',
             to: '/system/notice'
+          },
+          {
+            label: '文件管理',
+            icon: 'i-lucide-folder',
+            to: '/system/file'
           }
         ]
       }

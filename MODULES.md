@@ -16,7 +16,7 @@
 | system | [字典管理 dict](#字典管理-dict) | 主从双 list | 已实现 |
 | system | [系统配置 config](#系统配置-config) | 全量 list | 已实现 |
 | system | [通知公告 notice](#通知公告-notice) | 分页 | 已实现 |
-| system | [文件管理 file](#文件管理-file) | 分页 | 待实现 |
+| system | [文件管理 file](#文件管理-file) | 分页 | 已实现 |
 | monitor | [操作日志 operate-log](#操作日志-operate-log) | 分页（只读） | 待实现 |
 | monitor | [登录日志 login-log](#登录日志-login-log) | 分页（只读） | 待实现 |
 | monitor | [在线用户 online-user](#在线用户-online-user) | 分页 | 待实现 |

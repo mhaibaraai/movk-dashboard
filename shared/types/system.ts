@@ -142,6 +142,25 @@ export interface DictDataResp {
   updatedAt: string
 }
 
+// ─── 文件管理 ───────────────────────────────────────
+
+export interface FileResp {
+  id: string
+  originalName: string
+  storageName: string
+  extension: string | null
+  contentType: string | null
+  size: number
+  sizeFormatted: string
+  path: string | null
+  md5: string | null
+  storageType: string | null
+  category: string | null
+  downloadUrl: string | null
+  createdAt: string
+  remark: string | null
+}
+
 // ─── 系统配置 ───────────────────────────────────────
 
 export type ConfigType = 'BUILTIN' | 'CUSTOM'
