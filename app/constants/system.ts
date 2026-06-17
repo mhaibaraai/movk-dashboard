@@ -45,3 +45,13 @@ export const MENU_TYPE_ICON: Record<string, string> = {
   MENU: 'i-lucide-file',
   BUTTON: 'i-lucide-square-mouse-pointer'
 }
+
+export const CONFIG_TYPE_COLOR: Record<string, 'primary' | 'neutral'> = {
+  BUILTIN: 'primary',
+  CUSTOM: 'neutral'
+}
+
+export const CONFIG_TYPE_LABEL: Record<string, string> = {
+  BUILTIN: '内置',
+  CUSTOM: '自定义'
+}

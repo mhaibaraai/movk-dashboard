@@ -39,6 +39,11 @@ export function useNavigation() {
             label: '菜单管理',
             icon: 'i-lucide-layout-list',
             to: '/system/menu'
+          },
+          {
+            label: '系统配置',
+            icon: 'i-lucide-settings-2',
+            to: '/system/config'
           }
         ]
       }

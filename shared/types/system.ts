@@ -112,3 +112,18 @@ export interface PostResp {
   createdAt: string
   updatedAt: string
 }
+
+// ─── 系统配置 ───────────────────────────────────────
+
+export type ConfigType = 'BUILTIN' | 'CUSTOM'
+
+export interface ConfigResp {
+  id: string
+  configName: string
+  configKey: string
+  configValue: string
+  configType: ConfigType
+  remark: string | null
+  createdAt: string
+  updatedAt: string
+}
