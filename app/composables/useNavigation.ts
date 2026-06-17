@@ -41,6 +41,11 @@ export function useNavigation() {
             to: '/system/menu'
           },
           {
+            label: '字典管理',
+            icon: 'i-lucide-book-a',
+            to: '/system/dict'
+          },
+          {
             label: '系统配置',
             icon: 'i-lucide-settings-2',
             to: '/system/config'

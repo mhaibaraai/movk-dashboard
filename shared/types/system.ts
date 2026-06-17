@@ -113,6 +113,35 @@ export interface PostResp {
   updatedAt: string
 }
 
+// ─── 字典管理 ───────────────────────────────────────
+
+export type DictStatus = 'ENABLED' | 'DISABLED'
+
+export interface DictTypeResp {
+  id: string
+  dictName: string
+  dictType: string
+  status: DictStatus
+  remark: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface DictDataResp {
+  id: string
+  dictType: string
+  dictLabel: string
+  dictValue: string
+  dictSort: number
+  cssClass: string | null
+  listClass: string | null
+  isDefault: boolean
+  status: DictStatus
+  remark: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 // ─── 系统配置 ───────────────────────────────────────
 
 export type ConfigType = 'BUILTIN' | 'CUSTOM'
