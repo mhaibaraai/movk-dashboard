@@ -1,5 +1,5 @@
-import { useMenuApi } from '~/api/modules/system/menu'
-import type { MenuCreateReq, MenuUpdateReq } from '~/api/modules/system/menu/types'
+import { useMenuApi } from '~/api/system/menu'
+import type { MenuCreateReq, MenuUpdateReq } from '~/api/system/menu'
 
 export function useMenuTree() {
   const menuApi = useMenuApi()

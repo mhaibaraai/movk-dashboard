@@ -1,5 +1,5 @@
-import { useRoleApi } from '~/api/modules/system/role'
-import type { RoleListQuery, RoleCreateReq, RoleUpdateReq } from '~/api/modules/system/role/types'
+import { useRoleApi } from '~/api/system/role'
+import type { RoleListQuery, RoleCreateReq, RoleUpdateReq } from '~/api/system/role'
 
 export function useRoleList() {
   const roleApi = useRoleApi()
@@ -49,8 +49,8 @@ export function useRoleList() {
     await roleApi.assignMenus(roleId, menuIds)
   }
 
-  function handlePageChange(page: number) {
-    query.value = { ...query.value, page }
+  function handlePagination(page: number, size: number) {
+    query.value = { ...query.value, page, size }
   }
 
   function handleSearch(params: Partial<RoleListQuery>) {
@@ -69,7 +69,7 @@ export function useRoleList() {
     handleUpdate,
     getDetail,
     handleAssignMenus,
-    handlePageChange,
+    handlePagination,
     handleSearch
   }
 }

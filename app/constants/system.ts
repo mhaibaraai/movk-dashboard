@@ -21,3 +21,27 @@ export const ENABLED_DISABLED_LABEL: Record<string, string> = {
   ENABLED: '启用',
   DISABLED: '禁用'
 }
+
+export const USER_GENDER_LABEL: Record<string, string> = {
+  UNKNOWN: '未知',
+  MALE: '男',
+  FEMALE: '女'
+}
+
+export const MENU_TYPE_LABEL: Record<string, string> = {
+  DIRECTORY: '目录',
+  MENU: '菜单',
+  BUTTON: '按钮'
+}
+
+export const MENU_TYPE_COLOR: Record<string, 'primary' | 'info' | 'neutral'> = {
+  DIRECTORY: 'primary',
+  MENU: 'info',
+  BUTTON: 'neutral'
+}
+
+export const MENU_TYPE_ICON: Record<string, string> = {
+  DIRECTORY: 'i-lucide-folder',
+  MENU: 'i-lucide-file',
+  BUTTON: 'i-lucide-square-mouse-pointer'
+}

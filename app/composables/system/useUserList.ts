@@ -1,5 +1,5 @@
-import { useUserApi } from '~/api/modules/system/user'
-import type { UserListQuery, UserCreateReq, UserUpdateReq, ResetPasswordReq } from '~/api/modules/system/user/types'
+import { useUserApi } from '~/api/system/user'
+import type { UserListQuery, UserCreateReq, UserUpdateReq, ResetPasswordReq } from '~/api/system/user'
 
 export function useUserList() {
   const userApi = useUserApi()
@@ -49,8 +49,8 @@ export function useUserList() {
     return userApi.getById(id)
   }
 
-  function handlePageChange(page: number) {
-    query.value = { ...query.value, page }
+  function handlePagination(page: number, size: number) {
+    query.value = { ...query.value, page, size }
   }
 
   function handleSearch(params: Partial<UserListQuery>) {
@@ -69,7 +69,7 @@ export function useUserList() {
     handleUpdate,
     handleResetPassword,
     getDetail,
-    handlePageChange,
+    handlePagination,
     handleSearch
   }
 }

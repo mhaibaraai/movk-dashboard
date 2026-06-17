@@ -1,5 +1,5 @@
-import { useDeptApi } from '~/api/modules/system/dept'
-import type { DeptCreateReq, DeptUpdateReq } from '~/api/modules/system/dept/types'
+import { useDeptApi } from '~/api/system/dept'
+import type { DeptCreateReq, DeptUpdateReq } from '~/api/system/dept'
 
 export function useDeptTree() {
   const deptApi = useDeptApi()
