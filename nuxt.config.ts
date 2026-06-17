@@ -34,6 +34,15 @@ export default defineNuxtConfig({
 
   compatibilityDate: 'latest',
 
+  vite: {
+    optimizeDeps: {
+      include: [
+        '@movk/core',
+        'zod'
+      ]
+    }
+  },
+
   telemetry: false,
 
   eslint: {
@@ -53,7 +62,7 @@ export default defineNuxtConfig({
       },
       endpoints: {
         default: {
-          baseURL: process.env.NUXT_PUBLIC_API_BASE || '/api'
+          baseURL: process.env.NUXT_API_BASE || '/api'
         }
       }
     }
