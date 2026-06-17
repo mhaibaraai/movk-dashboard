@@ -44,7 +44,7 @@ const searchGroups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [
       :ui="{ footer: 'lg:border-t lg:border-default' }"
     >
       <template #header="{ collapsed }">
-        <Logo v-if="!collapsed" class="h-5 w-auto shrink-0" />
+        <Logo v-if="!collapsed" class="h-6 w-auto shrink-0" />
         <UIcon v-else name="i-simple-icons-nuxtdotjs" class="size-5 text-primary mx-auto" />
       </template>
 
