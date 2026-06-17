@@ -49,8 +49,8 @@ export function useRoleList() {
     await roleApi.assignMenus(roleId, menuIds)
   }
 
-  function handlePageChange(page: number) {
-    query.value = { ...query.value, page }
+  function handlePagination(page: number, size: number) {
+    query.value = { ...query.value, page, size }
   }
 
   function handleSearch(params: Partial<RoleListQuery>) {
@@ -69,7 +69,7 @@ export function useRoleList() {
     handleUpdate,
     getDetail,
     handleAssignMenus,
-    handlePageChange,
+    handlePagination,
     handleSearch
   }
 }

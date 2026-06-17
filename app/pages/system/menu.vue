@@ -1,49 +1,68 @@
 <script setup lang="ts">
+import type { DataTableColumn } from '@movk/nuxt'
+import type { FormSubmitEvent } from '@nuxt/ui'
+import type { z } from 'zod'
+import { Tree } from '@movk/core'
+import { UBadge, UIcon } from '#components'
 import type { MenuCreateReq, MenuUpdateReq } from '~/api/system/menu'
-import type { MenuType } from '#shared/types/system'
+import {
+  ENABLED_DISABLED_COLOR, ENABLED_DISABLED_LABEL,
+  MENU_TYPE_COLOR, MENU_TYPE_ICON, MENU_TYPE_LABEL
+} from '~/constants/system'
 
 const { tree, pending, handleCreate, handleUpdate, handleDelete, getDetail } = useMenuTree()
+const { afz } = useAutoForm()
 
-const isOpen = ref(false)
-const isEditing = ref(false)
-const editingId = ref<string | null>(null)
-const parentIdForNew = ref<string | null>(null)
-
-const form = ref<MenuCreateReq>({
-  name: '',
-  type: 'DIRECTORY',
-  orderNum: 0,
-  visible: true,
-  status: 'ENABLED',
-  isFrame: false,
-  isCache: false
-})
-
-const typeOptions = [
+const statusItems = [{ label: '启用', value: 'ENABLED' }, { label: '禁用', value: 'DISABLED' }]
+const typeItems = [
   { label: '目录', value: 'DIRECTORY' },
   { label: '菜单', value: 'MENU' },
   { label: '按钮', value: 'BUTTON' }
 ]
+const menuOptions = computed(() => Tree.toList(tree.value).map(m => ({ label: m.name, value: m.id })))
 
-const typeIconMap: Record<MenuType, string> = {
-  DIRECTORY: 'i-lucide-folder',
-  MENU: 'i-lucide-file',
-  BUTTON: 'i-lucide-square-mouse-pointer'
-}
+const isOpen = ref(false)
+const isEditing = ref(false)
+const editingId = ref<string | null>(null)
+const formRef = useTemplateRef('formRef')
+const state = ref<Partial<MenuCreateReq>>({})
+
+const schema = afz.object({
+  parentId: afz.enum([], {
+    type: 'selectMenu',
+    controlProps: () => ({ placeholder: '上级菜单（留空为顶级）', clear: true, valueKey: 'value', items: menuOptions.value })
+  }).optional().meta({ label: '上级菜单' }),
+  type: afz.enum(['DIRECTORY', 'MENU', 'BUTTON'], {
+    controlProps: { valueKey: 'value', items: typeItems }
+  }).default('MENU').meta({ label: '菜单类型' }),
+  name: afz.string({ controlProps: { placeholder: '请输入菜单名称' } })
+    .max(50, '最多 50 字').meta({ label: '菜单名称' }),
+  icon: afz.string({ controlProps: { placeholder: '如：i-lucide-home' } }).optional().meta({ label: '图标' }),
+  orderNum: afz.number().default(0).meta({ label: '排序' }),
+  path: afz.string({ controlProps: { placeholder: '如：/system/user' } }).optional()
+    .meta({ label: '路由地址', if: ({ state }: { state: Partial<MenuCreateReq> }) => state.type !== 'BUTTON' }),
+  component: afz.string({ controlProps: { placeholder: '如：system/user' } }).optional()
+    .meta({ label: '组件路径', if: ({ state }: { state: Partial<MenuCreateReq> }) => state.type === 'MENU' }),
+  permissionCode: afz.string({ controlProps: { placeholder: '如：system:user:list' } }).optional()
+    .meta({ label: '权限标识', if: ({ state }: { state: Partial<MenuCreateReq> }) => state.type === 'BUTTON' }),
+  isFrame: afz.boolean({ type: 'switch' }).default(false)
+    .meta({ label: '是否外链', if: ({ state }: { state: Partial<MenuCreateReq> }) => state.type !== 'BUTTON' }),
+  isCache: afz.boolean({ type: 'switch' }).default(false)
+    .meta({ label: '是否缓存', if: ({ state }: { state: Partial<MenuCreateReq> }) => state.type !== 'BUTTON' }),
+  visible: afz.boolean({ type: 'switch' }).default(true)
+    .meta({ label: '是否显示', if: ({ state }: { state: Partial<MenuCreateReq> }) => state.type !== 'BUTTON' }),
+  status: afz.enum(['ENABLED', 'DISABLED'], {
+    controlProps: { valueKey: 'value', items: statusItems }
+  }).default('ENABLED').meta({ label: '状态' }),
+  remark: afz.string({ type: 'textarea', controlProps: { rows: 3, placeholder: '备注信息' } })
+    .max(500, '最多 500 字').optional().meta({ label: '备注' })
+})
+type MenuSchema = z.output<typeof schema>
 
 function openCreate(parentId?: string) {
   isEditing.value = false
   editingId.value = null
-  parentIdForNew.value = parentId ?? null
-  form.value = {
-    name: '',
-    type: 'MENU',
-    orderNum: 0,
-    visible: true,
-    status: 'ENABLED',
-    isFrame: false,
-    isCache: false
-  }
+  state.value = { type: 'MENU', status: 'ENABLED', orderNum: 0, visible: true, isFrame: false, isCache: false, parentId }
   isOpen.value = true
 }
 
@@ -51,152 +70,140 @@ async function openEdit(id: string) {
   isEditing.value = true
   editingId.value = id
   const detail = await getDetail(id)
-  form.value = {
+  state.value = {
     parentId: detail.parentId ?? undefined,
     type: detail.type,
     name: detail.name,
+    icon: detail.icon ?? undefined,
     orderNum: detail.orderNum,
-    path: detail.path ?? '',
-    component: detail.component ?? '',
-    permissionCode: detail.permissionCode ?? '',
+    path: detail.path ?? undefined,
+    component: detail.component ?? undefined,
+    permissionCode: detail.permissionCode ?? undefined,
+    isFrame: detail.isFrame,
+    isCache: detail.isCache,
     visible: detail.visible,
     status: detail.status,
-    icon: detail.icon ?? '',
-    isFrame: detail.isFrame,
-    isCache: detail.isCache
+    remark: detail.remark ?? undefined
   }
   isOpen.value = true
 }
 
-async function handleSubmit() {
+async function onSubmit(event: FormSubmitEvent<MenuSchema>) {
   if (isEditing.value && editingId.value) {
-    await handleUpdate(editingId.value, form.value as MenuUpdateReq)
+    await handleUpdate(editingId.value, event.data as MenuUpdateReq)
   } else {
-    await handleCreate({
-      ...form.value,
-      parentId: parentIdForNew.value ?? undefined
-    })
+    await handleCreate(event.data)
   }
   isOpen.value = false
 }
 
-const columns = [
-  { key: 'name', label: '菜单名称' },
-  { key: 'type', label: '类型' },
-  { key: 'permissionCode', label: '权限标识' },
-  { key: 'orderNum', label: '排序' },
-  { key: 'status', label: '状态' },
-  { key: 'actions', label: '操作' }
+const columns: DataTableColumn<MenuResp>[] = [
+  { type: 'expand' },
+  {
+    accessorKey: 'name',
+    header: '菜单名称',
+    cell: ({ row }) => h('div', { class: 'flex items-center gap-2' }, [
+      h(UIcon, { name: MENU_TYPE_ICON[row.original.type] ?? 'i-lucide-file', class: 'text-muted' }),
+      h('span', row.original.name)
+    ])
+  },
+  {
+    accessorKey: 'type',
+    header: '类型',
+    cell: ({ row }) => h(
+      UBadge,
+      { color: MENU_TYPE_COLOR[row.original.type] ?? 'neutral', variant: 'subtle' },
+      () => MENU_TYPE_LABEL[row.original.type] ?? row.original.type
+    )
+  },
+  { accessorKey: 'permissionCode', header: '权限标识' },
+  { accessorKey: 'path', header: '路由地址' },
+  { accessorKey: 'orderNum', header: '排序' },
+  {
+    accessorKey: 'visible',
+    header: '显示',
+    cell: ({ row }) => h(
+      UBadge,
+      { color: row.original.visible ? 'success' : 'neutral', variant: 'subtle' },
+      () => row.original.visible ? '显示' : '隐藏'
+    )
+  },
+  {
+    accessorKey: 'status',
+    header: '状态',
+    cell: ({ row }) => h(
+      UBadge,
+      { color: ENABLED_DISABLED_COLOR[row.original.status] ?? 'neutral', variant: 'subtle' },
+      () => ENABLED_DISABLED_LABEL[row.original.status] ?? row.original.status
+    )
+  },
+  {
+    type: 'actions',
+    fixed: 'right',
+    size: 150,
+    actions: [
+      {
+        key: 'addChild',
+        buttonProps: { icon: 'i-lucide-plus', variant: 'ghost', size: 'xs' },
+        onClick: ({ row }) => openCreate(row.id)
+      },
+      {
+        key: 'edit',
+        buttonProps: { icon: 'i-lucide-pencil', variant: 'ghost', size: 'xs' },
+        onClick: ({ row }) => openEdit(row.id)
+      },
+      {
+        key: 'delete',
+        buttonProps: { icon: 'i-lucide-trash-2', color: 'error', variant: 'ghost', size: 'xs' },
+        visibility: ({ row }) => !(row.children && row.children.length),
+        confirm: true,
+        confirmProps: ({ row }) => ({
+          type: 'warning',
+          title: `删除菜单 ${row.name}？`,
+          description: '删除后无法恢复，请确认。',
+          confirmText: '确认删除'
+        }),
+        onClick: async ({ row }) => {
+          await handleDelete(row.id)
+        }
+      }
+    ]
+  }
 ]
 </script>
 
 <template>
-  <div>
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-base font-semibold">
-        菜单管理
-      </h2>
-      <UButton icon="i-lucide-plus" @click="openCreate()">
-        新增菜单
-      </UButton>
-    </div>
-
-    <UTable :rows="tree" :columns="columns" :loading="pending">
-      <template #name-data="{ row }">
-        <div class="flex items-center gap-2">
-          <UIcon :name="typeIconMap[row.type as MenuType]" class="text-muted" />
-          <span>{{ row.name }}</span>
-        </div>
+  <div class="flex flex-col gap-4">
+    <AppDataTable
+      children-key="children"
+      row-key="id"
+      :columns="columns"
+      :data="tree"
+      :loading="pending"
+    >
+      <template #toolbar-right>
+        <UButton icon="i-lucide-plus" @click="openCreate()">
+          新增菜单
+        </UButton>
       </template>
+    </AppDataTable>
 
-      <template #type-data="{ row }">
-        <UBadge variant="outline" color="neutral">
-          {{ typeOptions.find(t => t.value === row.type)?.label }}
-        </UBadge>
-      </template>
-
-      <template #status-data="{ row }">
-        <UBadge
-          :color="row.status === 'ENABLED' ? 'success' : 'neutral'"
-          variant="subtle"
-        >
-          {{ row.status === 'ENABLED' ? '启用' : '禁用' }}
-        </UBadge>
-      </template>
-
-      <template #actions-data="{ row }">
-        <div class="flex items-center gap-2">
-          <UButton
-            v-if="row.type !== 'BUTTON'"
-            size="xs"
-            variant="ghost"
-            icon="i-lucide-plus"
-            @click="openCreate(row.id)"
-          >
-            添加子项
-          </UButton>
-          <UButton size="xs" variant="ghost" icon="i-lucide-pencil" @click="openEdit(row.id)">
-            编辑
-          </UButton>
-          <UButton
-            size="xs"
-            variant="ghost"
-            color="error"
-            icon="i-lucide-trash-2"
-            @click="handleDelete(row.id)"
-          >
-            删除
-          </UButton>
-        </div>
-      </template>
-    </UTable>
-
-    <USlideover v-model:open="isOpen" :title="isEditing ? '编辑菜单' : '新增菜单'">
+    <USlideover v-model:open="isOpen" :title="isEditing ? '编辑菜单' : '新增菜单'" class="w-120">
       <template #body>
-        <div class="flex flex-col gap-4 p-4">
-          <UFormField label="菜单类型" required>
-            <USelect v-model="form.type" :items="typeOptions" class="w-full" />
-          </UFormField>
-          <UFormField label="菜单名称" required>
-            <UInput v-model="form.name" placeholder="请输入菜单名称" class="w-full" />
-          </UFormField>
-          <UFormField label="图标">
-            <UInput v-model="form.icon" placeholder="如：i-lucide-home" class="w-full" />
-          </UFormField>
-          <UFormField label="排序">
-            <UInput v-model.number="form.orderNum" type="number" class="w-full" />
-          </UFormField>
-          <template v-if="form.type !== 'BUTTON'">
-            <UFormField label="路由地址">
-              <UInput v-model="form.path" placeholder="如：/system/user" class="w-full" />
-            </UFormField>
-          </template>
-          <template v-if="form.type === 'MENU'">
-            <UFormField label="组件路径">
-              <UInput v-model="form.component" placeholder="如：system/user" class="w-full" />
-            </UFormField>
-          </template>
-          <UFormField label="权限标识">
-            <UInput v-model="form.permissionCode" placeholder="如：system:user:list" class="w-full" />
-          </UFormField>
-          <UFormField label="状态">
-            <USelect
-              v-model="form.status"
-              :items="[{ label: '启用', value: 'ENABLED' }, { label: '禁用', value: 'DISABLED' }]"
-              class="w-full"
-            />
-          </UFormField>
-          <UFormField v-if="form.type !== 'BUTTON'" label="是否显示">
-            <UToggle v-model="form.visible" />
-          </UFormField>
-        </div>
+        <MAutoForm
+          ref="formRef"
+          :schema="schema"
+          :state="state"
+          :submit="false"
+          @submit="onSubmit"
+        />
       </template>
       <template #footer>
-        <div class="flex justify-end gap-2 p-4">
-          <UButton variant="ghost" @click="isOpen = false">
+        <div class="flex w-full justify-end gap-2">
+          <UButton variant="ghost" color="neutral" @click="isOpen = false">
             取消
           </UButton>
-          <UButton @click="handleSubmit">
+          <UButton @click="formRef?.formRef?.submit()">
             保存
           </UButton>
         </div>

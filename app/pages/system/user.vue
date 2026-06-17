@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import type { DataTableColumn, RowSelectionState } from '@movk/nuxt'
+import type { DataTableColumn } from '@movk/nuxt'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import type { ZodType } from 'zod'
+import { z } from 'zod'
+import { Tree } from '@movk/core'
 import { UBadge } from '#components'
 import type { UserCreateReq, UserUpdateReq } from '~/api/system/user'
 import { USER_STATUS_COLOR, USER_STATUS_LABEL } from '~/constants/system'
@@ -14,7 +15,7 @@ const {
 
 const { deptOptions, deptTreeItems, roleOptions, postOptions } = useUserFormOptions()
 const { afz } = useAutoForm()
-const toast = useToast()
+const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle: 'medium', timeStyle: 'medium' } })
 
 const statusItems = [
   { label: '正常', value: 'ACTIVE' },
@@ -28,17 +29,23 @@ const genderItems = [
 ]
 
 const pagination = useTablePagination(query.value.size ?? 20, handlePagination)
-const rowSelection = ref<RowSelectionState>({})
-const selectedIds = computed(() => Object.keys(rowSelection.value).filter(id => rowSelection.value[id]))
+const rowSelectionKeys = ref<string[]>([])
 
 // 左侧部门树筛选
-interface DeptTreeItem { label: string, value: string, children?: DeptTreeItem[] }
-const selectedDept = ref<DeptTreeItem | undefined>()
+const selectedDept = ref()
 watch(selectedDept, dept => handleSearch({ deptId: dept?.value }))
 
-function clearDeptFilter() {
-  selectedDept.value = undefined
-}
+// 部门树：点击只过滤；展开态在客户端挂载后再设置。SSR setup 时数据未就绪、
+// 客户端 hydration 时数据已就绪，若用 watch immediate 会得到不同展开态而水合不一致；
+// 故首屏两端都渲染为空，挂载后（仅客户端）再展开。
+const allDeptKeys = computed(() => Tree.toList(deptTreeItems.value).map(n => n.value))
+const expandedDeptKeys = ref<string[]>([])
+onMounted(() => {
+  expandedDeptKeys.value = allDeptKeys.value
+})
+watch(allDeptKeys, (keys) => {
+  expandedDeptKeys.value = keys
+})
 
 // 顶部搜索
 const searchSchema = afz.object({
@@ -49,14 +56,16 @@ const searchSchema = afz.object({
     type: 'selectMenu',
     controlProps: {
       placeholder: '状态',
+      clear: true,
       valueKey: 'value',
       items: [...statusItems, { label: '已删除', value: 'DELETED' }]
     }
   }).optional().meta({ label: '状态' })
 })
-const searchState = ref<Record<string, unknown>>({})
+type SearchSchema = z.output<typeof searchSchema>
+const searchState = ref<Partial<SearchSchema>>({})
 
-function onSearch(event: FormSubmitEvent<Record<string, unknown>>) {
+function onSearch(event: FormSubmitEvent<SearchSchema>) {
   handleSearch(event.data)
 }
 function onSearchReset() {
@@ -68,64 +77,42 @@ const isFormOpen = ref(false)
 const isEditing = ref(false)
 const editingId = ref<string | null>(null)
 const formRef = useTemplateRef('formRef')
-const formState = reactive<Partial<UserCreateReq>>({})
+const formState = ref<Partial<UserCreateReq>>({})
 
-function blankUserForm(): Partial<UserCreateReq> {
-  return {
-    username: undefined, password: undefined, nickname: undefined, email: undefined,
-    phone: undefined, gender: undefined, avatar: undefined, status: undefined,
-    deptId: undefined, roleIds: undefined, postIds: undefined, remark: undefined
-  }
-}
-
-function resetFormState(value: Partial<UserCreateReq> = {}) {
-  Object.assign(formState, blankUserForm(), value)
-}
-
-const formSchema = computed(() => {
-  const passwordField: Record<string, ZodType> = isEditing.value
-    ? {}
-    : {
-        password: afz.string({ type: 'withPasswordToggle', controlProps: { placeholder: '请输入密码' } })
-          .min(6, '密码至少 6 位').meta({ label: '密码' })
-      }
-
-  const restFields: Record<string, ZodType> = {
-    nickname: afz.string({ controlProps: { placeholder: '请输入昵称' } }).optional().meta({ label: '昵称' }),
-    email: afz.email({ error: '邮箱格式不正确' }).optional().meta({ label: '邮箱' }),
-    phone: afz.string({ controlProps: { placeholder: '请输入手机号' } }).optional().meta({ label: '手机号' }),
-    gender: afz.enum(['UNKNOWN', 'MALE', 'FEMALE'], { controlProps: { valueKey: 'value', items: genderItems } })
-      .default('UNKNOWN').meta({ label: '性别' }),
-    status: afz.enum(['ACTIVE', 'DISABLED', 'LOCKED'], { controlProps: { valueKey: 'value', items: statusItems } })
-      .default('ACTIVE').meta({ label: '状态' }),
-    deptId: afz.enum([], {
-      type: 'selectMenu',
-      controlProps: { placeholder: '请选择部门', valueKey: 'value', items: deptOptions.value }
-    }).optional().meta({ label: '部门' }),
-    roleIds: afz.array(afz.string(), {
-      type: 'selectMenu',
-      controlProps: { placeholder: '请选择角色', multiple: true, valueKey: 'value', items: roleOptions.value }
-    }).default([]).meta({ label: '角色' }),
-    postIds: afz.array(afz.string(), {
-      type: 'selectMenu',
-      controlProps: { placeholder: '请选择岗位', multiple: true, valueKey: 'value', items: postOptions.value }
-    }).default([]).meta({ label: '岗位' }),
-    remark: afz.string({ type: 'textarea', controlProps: { rows: 3, placeholder: '备注信息' } })
-      .optional().meta({ label: '备注' })
-  }
-
-  return afz.object({
-    username: afz.string({ controlProps: { disabled: isEditing.value, placeholder: '请输入用户名' } })
-      .min(1, '请输入用户名').meta({ label: '用户名' }),
-    ...passwordField,
-    ...restFields
-  })
+const formSchema = z.object({
+  username: afz.string({ controlProps: () => ({ disabled: isEditing.value, placeholder: '请输入用户名' }) })
+    .min(1, '请输入用户名').meta({ label: '用户名' }),
+  password: afz.string({ type: 'withPasswordToggle', controlProps: { placeholder: '请输入密码' } })
+    .min(6, '密码至少 6 位').meta({ if: () => !isEditing.value, label: '密码' }),
+  nickname: afz.string({ controlProps: { placeholder: '请输入昵称' } }).optional().meta({ label: '昵称' }),
+  email: afz.email({ error: '邮箱格式不正确' }).optional().meta({ label: '邮箱' }),
+  phone: afz.string({ controlProps: { placeholder: '请输入手机号' } }).optional().meta({ label: '手机号' }),
+  gender: afz.enum(['UNKNOWN', 'MALE', 'FEMALE'], { controlProps: { valueKey: 'value', items: genderItems } })
+    .default('UNKNOWN').meta({ label: '性别' }),
+  status: afz.enum(['ACTIVE', 'DISABLED', 'LOCKED', 'DELETED'], { controlProps: { valueKey: 'value', items: statusItems } })
+    .default('ACTIVE').meta({ label: '状态' }),
+  deptId: afz.enum([], {
+    type: 'selectMenu',
+    controlProps: { placeholder: '请选择部门', clear: true, valueKey: 'value', items: deptOptions.value }
+  }).optional().meta({ label: '部门' }),
+  roleIds: afz.array(afz.string(), {
+    type: 'selectMenu',
+    controlProps: { placeholder: '请选择角色', multiple: true, valueKey: 'value', items: roleOptions.value }
+  }).default([]).meta({ label: '角色' }),
+  postIds: afz.array(afz.string(), {
+    type: 'selectMenu',
+    controlProps: { placeholder: '请选择岗位', multiple: true, valueKey: 'value', items: postOptions.value }
+  }).default([]).meta({ label: '岗位' }),
+  remark: afz.string({ type: 'textarea', controlProps: { rows: 3, placeholder: '备注信息' } })
+    .optional().meta({ label: '备注' })
 })
+
+type FormSchema = z.output<typeof formSchema>
 
 function openCreate() {
   isEditing.value = false
   editingId.value = null
-  resetFormState({ status: 'ACTIVE', gender: 'UNKNOWN', roleIds: [], postIds: [] })
+  formState.value = { status: 'ACTIVE', gender: 'UNKNOWN', roleIds: [], postIds: [] }
   isFormOpen.value = true
 }
 
@@ -133,7 +120,7 @@ async function openEdit(id: string) {
   isEditing.value = true
   editingId.value = id
   const detail = await getDetail(id)
-  resetFormState({
+  formState.value = {
     username: detail.username,
     nickname: detail.nickname ?? undefined,
     email: detail.email ?? undefined,
@@ -144,18 +131,16 @@ async function openEdit(id: string) {
     roleIds: detail.roleIds,
     postIds: detail.postIds,
     remark: detail.remark ?? undefined
-  })
+  }
   isFormOpen.value = true
 }
 
-async function onFormSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
+async function onFormSubmit(event: FormSubmitEvent<FormSchema>) {
   if (isEditing.value && editingId.value) {
     const { username: _username, password: _password, ...rest } = event.data
     await handleUpdate(editingId.value, rest as UserUpdateReq)
-    toast.add({ title: '修改成功', color: 'success' })
   } else {
     await handleCreate(event.data as unknown as UserCreateReq)
-    toast.add({ title: '新增成功', color: 'success' })
   }
   isFormOpen.value = false
 }
@@ -179,21 +164,19 @@ function openReset(id: string) {
 async function onResetSubmit(event: FormSubmitEvent<{ newPassword: string }>) {
   if (!resetUserId.value) return
   await handleResetPassword({ userId: resetUserId.value, newPassword: event.data.newPassword })
-  toast.add({ title: '密码重置成功', color: 'success' })
   isResetOpen.value = false
 }
 
 const columns: DataTableColumn<UserResp>[] = [
-  { type: 'selection' },
-  { accessorKey: 'username', header: '用户名', size: 140 },
-  { accessorKey: 'nickname', header: '昵称', size: 120, cell: ({ row }) => row.original.nickname ?? '-' },
-  { accessorKey: 'phone', header: '手机号', size: 130, cell: ({ row }) => row.original.phone ?? '-' },
-  { accessorKey: 'email', header: '邮箱', size: 180, cell: ({ row }) => row.original.email ?? '-' },
-  { accessorKey: 'deptName', header: '部门', size: 120, cell: ({ row }) => row.original.deptName ?? '-' },
+  { type: 'selection', fixed: 'left' },
+  { accessorKey: 'username', header: '用户名' },
+  { accessorKey: 'nickname', header: '昵称' },
+  { accessorKey: 'phone', header: '手机号' },
+  { accessorKey: 'email', header: '邮箱' },
+  { accessorKey: 'deptName', header: '部门' },
   {
     accessorKey: 'status',
     header: '状态',
-    size: 90,
     cell: ({ row }) => h(
       UBadge,
       { color: USER_STATUS_COLOR[row.original.status] ?? 'neutral', variant: 'subtle' },
@@ -203,12 +186,12 @@ const columns: DataTableColumn<UserResp>[] = [
   {
     accessorKey: 'createdAt',
     header: '创建时间',
-    size: 160,
-    cell: ({ row }) => new Date(row.original.createdAt).toLocaleString('zh-CN')
+    cell: ({ row }) => formatter.format(formatter.fromISO(row.original.createdAt))
   },
   {
     type: 'actions',
-    size: 150,
+    fixed: 'right',
+    size: 120,
     maxInline: 3,
     actions: [
       {
@@ -233,7 +216,6 @@ const columns: DataTableColumn<UserResp>[] = [
         }),
         onClick: async ({ row }) => {
           await handleDelete(row.id)
-          toast.add({ title: '删除成功', color: 'success' })
         }
       }
     ]
@@ -241,9 +223,8 @@ const columns: DataTableColumn<UserResp>[] = [
 ]
 
 async function onBatchDelete() {
-  await handleDeleteBatch(selectedIds.value)
-  rowSelection.value = {}
-  toast.add({ title: '批量删除成功', color: 'success' })
+  await handleDeleteBatch(rowSelectionKeys.value)
+  rowSelectionKeys.value = []
 }
 </script>
 
@@ -251,21 +232,13 @@ async function onBatchDelete() {
   <div class="flex gap-4">
     <aside class="w-60 shrink-0">
       <div class="flex h-full flex-col gap-2 rounded-md border border-default p-2">
-        <UButton
-          icon="i-lucide-list"
-          :variant="selectedDept ? 'ghost' : 'soft'"
-          color="neutral"
-          block
-          class="justify-start"
-          @click="clearDeptFilter"
-        >
-          全部部门
-        </UButton>
         <UTree
           v-model="selectedDept"
+          v-model:expanded="expandedDeptKeys"
           :items="deptTreeItems"
-          :get-key="(item) => item.value"
+          :get-key="item => item.value"
           class="flex-1 overflow-auto"
+          @toggle="(e) => e.preventDefault()"
         />
       </div>
     </aside>
@@ -274,34 +247,35 @@ async function onBatchDelete() {
       <MSearchForm
         v-model="searchState"
         :schema="searchSchema"
+        :cols="5"
         @submit="onSearch"
         @reset="onSearchReset"
       />
 
-      <div class="flex items-center justify-end gap-2">
-        <UButton
-          v-if="selectedIds.length > 0"
-          icon="i-lucide-trash-2"
-          color="error"
-          variant="soft"
-          @click="onBatchDelete"
-        >
-          批量删除（{{ selectedIds.length }}）
-        </UButton>
-        <UButton icon="i-lucide-plus" @click="openCreate">
-          新增用户
-        </UButton>
-      </div>
-
-      <MDataTable
+      <AppDataTable
         v-model:pagination="pagination"
-        v-model:row-selection="rowSelection"
+        v-model:row-selection-keys="rowSelectionKeys"
         row-key="id"
         :columns="columns"
         :data="users"
         :loading="pending"
         :pagination-options="{ manualPagination: true, rowCount: total }"
-      />
+      >
+        <template #toolbar-right>
+          <UButton
+            v-if="rowSelectionKeys.length > 0"
+            icon="i-lucide-trash-2"
+            color="error"
+            variant="soft"
+            @click="onBatchDelete"
+          >
+            批量删除（{{ rowSelectionKeys.length }}）
+          </UButton>
+          <UButton icon="i-lucide-plus" @click="openCreate">
+            新增用户
+          </UButton>
+        </template>
+      </AppDataTable>
     </div>
 
     <USlideover v-model:open="isFormOpen" :title="isEditing ? '编辑用户' : '新增用户'" class="w-130">
