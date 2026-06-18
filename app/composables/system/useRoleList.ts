@@ -19,7 +19,7 @@ export function useRoleList() {
   )
 
   const roles = computed(() => data.value?.content ?? [])
-  const total = computed(() => data.value?.totalElements ?? 0)
+  const total = computed(() => data.value?.page?.totalElements ?? 0)
 
   async function handleDelete(id: string) {
     await roleApi.remove(id)

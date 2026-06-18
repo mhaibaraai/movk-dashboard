@@ -18,15 +18,15 @@ const statusItems = [{ label: '启用', value: 'ENABLED' }, { label: '禁用', v
 
 // 顶部搜索（后端无业务 query，客户端过滤）
 const searchSchema = afz.object({
-  noticeTitle: afz.string({ controlProps: { placeholder: '公告标题' } }).optional().meta({ label: '公告标题' }),
+  noticeTitle: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-megaphone', label: '公告标题' } }).optional(),
   noticeType: afz.enum(['NOTICE', 'ANNOUNCEMENT'], {
     type: 'selectMenu',
-    controlProps: { placeholder: '类型', clear: true, valueKey: 'value', items: typeItems }
-  }).optional().meta({ label: '类型' }),
+    controlProps: { icon: 'i-lucide-tag', placeholder: '类型', clear: true, valueKey: 'value', items: typeItems }
+  }).optional(),
   status: afz.enum(['ENABLED', 'DISABLED'], {
     type: 'selectMenu',
-    controlProps: { placeholder: '状态', clear: true, valueKey: 'value', items: statusItems }
-  }).optional().meta({ label: '状态' })
+    controlProps: { icon: 'i-lucide-toggle-left', placeholder: '状态', clear: true, valueKey: 'value', items: statusItems }
+  }).optional()
 })
 type NoticeSearch = z.output<typeof searchSchema>
 const searchState = ref<Partial<InferInput<typeof searchSchema>>>({})
@@ -155,10 +155,11 @@ const columns: DataTableColumn<NoticeResp>[] = [
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4 min-h-0 flex-1">
     <MSearchForm
       v-model="searchState"
       :schema="searchSchema"
+      :global-meta="{ label: '' }"
       :cols="4"
       @submit="onSearch"
       @reset="onSearchReset"

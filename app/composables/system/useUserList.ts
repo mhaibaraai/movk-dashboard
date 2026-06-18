@@ -6,7 +6,7 @@ export function useUserList() {
 
   const query = ref<UserListQuery>({
     page: 0,
-    size: 20
+    size: 10
   })
 
   const { data, pending, refresh } = useApiFetch<PageResp<UserResp>>(
@@ -19,7 +19,7 @@ export function useUserList() {
   )
 
   const users = computed(() => data.value?.content ?? [])
-  const total = computed(() => data.value?.totalElements ?? 0)
+  const total = computed(() => data.value?.page?.totalElements ?? 0)
 
   async function handleDelete(id: string) {
     await userApi.remove(id)

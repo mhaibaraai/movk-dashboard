@@ -19,9 +19,9 @@ const rowSelectionKeys = ref<string[]>([])
 
 // 顶部搜索（服务端 query）
 const searchSchema = afz.object({
-  originalName: afz.string({ controlProps: { placeholder: '文件名' } }).optional().meta({ label: '文件名' }),
-  category: afz.string({ controlProps: { placeholder: '分类' } }).optional().meta({ label: '分类' }),
-  contentType: afz.string({ controlProps: { placeholder: '类型' } }).optional().meta({ label: '类型' })
+  originalName: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-file', label: '文件名' } }).optional(),
+  category: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-folder', label: '分类' } }).optional(),
+  contentType: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-file-type', label: '类型' } }).optional()
 })
 type FileSearch = z.output<typeof searchSchema>
 const searchState = ref<Partial<FileSearch>>({})
@@ -139,10 +139,11 @@ const columns: DataTableColumn<FileResp>[] = [
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4 min-h-0 flex-1">
     <MSearchForm
       v-model="searchState"
       :schema="searchSchema"
+      :global-meta="{ label: '' }"
       :cols="4"
       @submit="onSearch"
       @reset="onSearchReset"

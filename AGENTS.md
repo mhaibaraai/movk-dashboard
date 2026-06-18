@@ -88,6 +88,10 @@ function handlePagination(page: number, size: number) {
 ## MSearchForm 约束
 
 - **默认 `:cols="x"`** 根据字段个数计算，优先确保 action 对齐最右侧，例如搜索字段为 3，则 `:cols="4"`。
+- **浮动标签风格（统一）**：`MSearchForm` 一律加 `:global-meta="{ label: '' }"` 移除控件上方的默认表单标签；字段标签改由控件内部呈现，**不写 `.meta({ label })`**（字段级 meta 会覆盖 `global-meta`，留着会让标签重新出现在上方）。
+  - 文本输入（`afz.string`）：`type: 'withFloatingLabel'` + `controlProps: { icon, label }`（浮动标签，去掉 `placeholder`）。`withFloatingLabel` 仅基于 `UInput`，**不适用于 selectMenu / calendarDate**。
+  - 非文本控件（`selectMenu`、`calendarDate` 等）：标签语义改用 `controlProps.placeholder` 表达（日期范围给 `placeholder: '开始日期' / '结束日期'` 以区分）。
+  - **每个字段补 leading `icon`**（`controlProps.icon`，lucide 语义图标，如用户名 `i-lucide-user`、状态 `i-lucide-toggle-left`、IP `i-lucide-network`、编码 `i-lucide-hash`、类型 `i-lucide-tag`）；`calendarDate` 已自带日历图标，无需再加。
 - 字段一律 `.optional()`；枚举用 `afz.enum([...], { type: 'selectMenu', controlProps: { clear: true, valueKey: 'value', items } })`，标签来自 constants。单选 selectMenu 默认加 `clear: true`（`USelectMenu` 自带清除按钮）以便取消筛选。
 - state 用 `ref<Partial<SearchSchema>>({})`；`@submit` 收 `FormSubmitEvent<SearchSchema>`。
 - 后端无 query 的列表（如 `GET /v1/system/posts`）做**客户端过滤**：`@submit` 写入 `appliedSearch`，`computed` 过滤后喂表格。

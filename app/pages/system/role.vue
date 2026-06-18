@@ -14,7 +14,7 @@ const {
 } = useRoleList()
 
 const { afz } = useAutoForm()
-const { deptOptions } = useUserFormOptions()
+const { deptOptions } = useDeptOptions()
 const { tree: menuTree } = useMenuTree()
 const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle: 'medium', timeStyle: 'medium' } })
 
@@ -33,16 +33,16 @@ const dataScopeItems = [
 
 // 搜索（服务端 query）
 const searchSchema = afz.object({
-  code: afz.string({ controlProps: { placeholder: '角色编码' } }).optional().meta({ label: '角色编码' }),
-  name: afz.string({ controlProps: { placeholder: '角色名称' } }).optional().meta({ label: '角色名称' }),
+  code: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-hash', label: '角色编码' } }).optional(),
+  name: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-shield', label: '角色名称' } }).optional(),
   status: afz.enum(['ENABLED', 'DISABLED'], {
     type: 'selectMenu',
-    controlProps: { placeholder: '状态', clear: true, valueKey: 'value', items: statusItems }
-  }).optional().meta({ label: '状态' }),
+    controlProps: { icon: 'i-lucide-toggle-left', placeholder: '状态', clear: true, valueKey: 'value', items: statusItems }
+  }).optional(),
   roleType: afz.enum(['BUILT_IN', 'CUSTOM'], {
     type: 'selectMenu',
-    controlProps: { placeholder: '类型', clear: true, valueKey: 'value', items: roleTypeItems }
-  }).optional().meta({ label: '类型' })
+    controlProps: { icon: 'i-lucide-tag', placeholder: '类型', clear: true, valueKey: 'value', items: roleTypeItems }
+  }).optional()
 })
 type RoleSearch = z.output<typeof searchSchema>
 const searchState = ref<Partial<InferInput<typeof searchSchema>>>({})
@@ -210,10 +210,11 @@ const columns: DataTableColumn<RoleResp>[] = [
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4 min-h-0 flex-1">
     <MSearchForm
       v-model="searchState"
       :schema="searchSchema"
+      :global-meta="{ label: '' }"
       :cols="5"
       @submit="onSearch"
       @reset="onSearchReset"

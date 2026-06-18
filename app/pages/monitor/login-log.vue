@@ -14,16 +14,16 @@ const pagination = useTablePagination(query.value.size ?? 20, handlePagination)
 const statusItems = [{ label: '成功', value: 'SUCCESS' }, { label: '失败', value: 'FAILURE' }]
 
 const searchSchema = afz.object({
-  username: afz.string({ controlProps: { placeholder: '用户名' } }).optional().meta({ label: '用户名' }),
-  loginIp: afz.string({ controlProps: { placeholder: '登录 IP' } }).optional().meta({ label: '登录 IP' }),
+  username: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-user', label: '用户名' } }).optional(),
+  loginIp: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-network', label: '登录 IP' } }).optional(),
   status: afz.enum(['SUCCESS', 'FAILURE'], {
     type: 'selectMenu',
-    controlProps: { placeholder: '状态', clear: true, valueKey: 'value', items: statusItems }
-  }).optional().meta({ label: '状态' }),
-  startTime: afz.calendarDate({ controlProps: { labelFormat: 'iso' } })
-    .transform(d => formatter.toISO(d)).optional().meta({ label: '开始日期' }),
-  endTime: afz.calendarDate({ controlProps: { labelFormat: 'iso' } })
-    .transform(d => formatter.toISO(d)).optional().meta({ label: '结束日期' })
+    controlProps: { icon: 'i-lucide-toggle-left', placeholder: '状态', clear: true, valueKey: 'value', items: statusItems }
+  }).optional(),
+  startTime: afz.calendarDate({ controlProps: { labelFormat: 'iso', placeholder: '开始日期' } })
+    .transform(d => formatter.toISO(d)).optional(),
+  endTime: afz.calendarDate({ controlProps: { labelFormat: 'iso', placeholder: '结束日期' } })
+    .transform(d => formatter.toISO(d)).optional()
 })
 type LogSearch = z.output<typeof searchSchema>
 const searchState = ref<Partial<LogSearch>>({})
@@ -90,10 +90,11 @@ const columns: DataTableColumn<LoginLogResp>[] = [
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4 min-h-0 flex-1">
     <MSearchForm
       v-model="searchState"
       :schema="searchSchema"
+      :global-meta="{ label: '' }"
       :cols="6"
       @submit="onSearch"
       @reset="onSearchReset"

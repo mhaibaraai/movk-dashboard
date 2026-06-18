@@ -14,8 +14,8 @@ const pagination = useTablePagination(query.value.size ?? 20, handlePagination)
 const rowSelectionKeys = ref<string[]>([])
 
 const searchSchema = afz.object({
-  username: afz.string({ controlProps: { placeholder: '用户名' } }).optional().meta({ label: '用户名' }),
-  loginIp: afz.string({ controlProps: { placeholder: '登录 IP' } }).optional().meta({ label: '登录 IP' })
+  username: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-user', label: '用户名' } }).optional(),
+  loginIp: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-network', label: '登录 IP' } }).optional()
 })
 type OnlineSearch = z.output<typeof searchSchema>
 const searchState = ref<Partial<OnlineSearch>>({})
@@ -77,10 +77,11 @@ const columns: DataTableColumn<OnlineUserResp>[] = [
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4 min-h-0 flex-1">
     <MSearchForm
       v-model="searchState"
       :schema="searchSchema"
+      :global-meta="{ label: '' }"
       :cols="3"
       @submit="onSearch"
       @reset="onSearchReset"

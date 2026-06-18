@@ -36,7 +36,7 @@ const schema = afz.object({
     controlProps: () => ({ placeholder: '请选择负责人', clear: true, valueKey: 'value', items: userOptions.value })
   }).optional().meta({ label: '负责人' }),
   phone: afz.string({ controlProps: { placeholder: '请输入联系电话' } }).optional().meta({ label: '联系电话' }),
-  email: afz.string({ controlProps: { placeholder: '请输入邮箱' } }).email('邮箱格式不正确').optional().meta({ label: '邮箱' }),
+  email: afz.email({ type: 'string', controlProps: { placeholder: '请输入邮箱' } }).optional().meta({ label: '邮箱' }),
   status: afz.enum(['ENABLED', 'DISABLED'], {
     controlProps: { valueKey: 'value', items: statusItems }
   }).default('ENABLED').meta({ label: '状态' })
@@ -132,7 +132,7 @@ const columns: DataTableColumn<DeptResp>[] = [
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4 min-h-0 flex-1">
     <AppDataTable
       children-key="children"
       row-key="id"

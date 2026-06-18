@@ -12,7 +12,7 @@ export function useLoginLogList() {
   })
 
   const logs = computed(() => data.value?.content ?? [])
-  const total = computed(() => data.value?.totalElements ?? 0)
+  const total = computed(() => data.value?.page?.totalElements ?? 0)
 
   async function handleClean(days: number) {
     await loginLogApi.clean(days)

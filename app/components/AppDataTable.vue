@@ -7,7 +7,9 @@ defineOptions({ inheritAttrs: false })
 const props = withDefaults(defineProps<DataTableProps<T>>(), {
   resizable: true,
   stripe: true,
-  density: 'normal'
+  sticky: true,
+  density: 'normal',
+  paginationUi: () => ({ pageSizes: [5, 10, 20, 50] })
 })
 
 const slots = useSlots()
@@ -18,6 +20,14 @@ const tableApi = computed(() => tableRef.value?.tableApi ?? null)
 const tableSlotNames = computed(() =>
   Object.keys(slots).filter(name => !name.startsWith('toolbar'))
 )
+
+// 表格填满容器并内部滚动：wrapper 取 flex-1，UTable root（overflow-auto）成为滚动容器，
+// 合并调用方传入的 ui 而非覆盖
+const tableUi = computed(() => ({
+  ...props.ui,
+  wrapper: ['flex-1', props.ui?.wrapper],
+  root: ['flex-1 min-h-0', props.ui?.root]
+}))
 
 // 列显隐：标签取自源列定义（resizable 下 columnDef.header 已是函数），
 // 可见态/切换走 tableApi；无 accessorKey 的 selection/actions 自动排除
@@ -42,7 +52,7 @@ defineExpose({ tableApi })
 </script>
 
 <template>
-  <div class="flex flex-col gap-3">
+  <div class="flex flex-col gap-3 min-h-0 flex-1">
     <div class="flex items-center justify-between gap-2">
       <div class="flex items-center gap-2">
         <slot name="toolbar-left" />
@@ -64,7 +74,7 @@ defineExpose({ tableApi })
       </div>
     </div>
 
-    <MDataTable ref="tableRef" v-bind="{ ...props, ...$attrs }">
+    <MDataTable ref="tableRef" v-bind="{ ...props, ...$attrs }" :ui="tableUi">
       <template v-for="name in tableSlotNames" #[name]="slotProps" :key="name">
         <slot :name="name" v-bind="slotProps ?? {}" />
       </template>

@@ -14,16 +14,16 @@ const pagination = useTablePagination(query.value.size ?? 20, handlePagination)
 const statusItems = [{ label: '成功', value: 'SUCCESS' }, { label: '失败', value: 'FAILURE' }]
 
 const searchSchema = afz.object({
-  module: afz.string({ controlProps: { placeholder: '模块' } }).optional().meta({ label: '模块' }),
-  operation: afz.string({ controlProps: { placeholder: '操作' } }).optional().meta({ label: '操作' }),
+  module: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-package', label: '模块' } }).optional(),
+  operation: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-mouse-pointer-click', label: '操作' } }).optional(),
   status: afz.enum(['SUCCESS', 'FAILURE'], {
     type: 'selectMenu',
-    controlProps: { placeholder: '状态', clear: true, valueKey: 'value', items: statusItems }
-  }).optional().meta({ label: '状态' }),
-  startTime: afz.calendarDate({ controlProps: { labelFormat: 'iso' } })
-    .transform(d => formatter.toISO(d)).optional().meta({ label: '开始日期' }),
-  endTime: afz.calendarDate({ controlProps: { labelFormat: 'iso' } })
-    .transform(d => formatter.toISO(d)).optional().meta({ label: '结束日期' })
+    controlProps: { icon: 'i-lucide-toggle-left', placeholder: '状态', clear: true, valueKey: 'value', items: statusItems }
+  }).optional(),
+  startTime: afz.calendarDate({ controlProps: { labelFormat: 'iso', placeholder: '开始日期' } })
+    .transform(d => formatter.toISO(d)).optional(),
+  endTime: afz.calendarDate({ controlProps: { labelFormat: 'iso', placeholder: '结束日期' } })
+    .transform(d => formatter.toISO(d)).optional()
 })
 type LogSearch = z.output<typeof searchSchema>
 const searchState = ref<Partial<LogSearch>>({})
@@ -121,10 +121,11 @@ const detailFields: { label: string, key: keyof OperateLogResp }[] = [
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4 min-h-0 flex-1">
     <MSearchForm
       v-model="searchState"
       :schema="searchSchema"
+      :global-meta="{ label: '' }"
       :cols="6"
       @submit="onSearch"
       @reset="onSearchReset"

@@ -16,12 +16,12 @@ const statusItems = [{ label: '启用', value: 'ENABLED' }, { label: '禁用', v
 
 // 顶部搜索（后端无 query 参数，客户端过滤）
 const searchSchema = afz.object({
-  postCode: afz.string({ controlProps: { placeholder: '岗位编码' } }).optional().meta({ label: '岗位编码' }),
-  postName: afz.string({ controlProps: { placeholder: '岗位名称' } }).optional().meta({ label: '岗位名称' }),
+  postCode: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-hash', label: '岗位编码' } }).optional(),
+  postName: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-briefcase', label: '岗位名称' } }).optional(),
   status: afz.enum(['ENABLED', 'DISABLED'], {
     type: 'selectMenu',
-    controlProps: { placeholder: '状态', clear: true, valueKey: 'value', items: statusItems }
-  }).optional().meta({ label: '状态' })
+    controlProps: { icon: 'i-lucide-toggle-left', placeholder: '状态', clear: true, valueKey: 'value', items: statusItems }
+  }).optional()
 })
 type PostSearch = z.output<typeof searchSchema>
 const searchState = ref<Partial<InferInput<typeof searchSchema>>>({})
@@ -145,10 +145,11 @@ const columns: DataTableColumn<PostResp>[] = [
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4 min-h-0 flex-1">
     <MSearchForm
       v-model="searchState"
       :schema="searchSchema"
+      :global-meta="{ label: '' }"
       :cols="4"
       @submit="onSearch"
       @reset="onSearchReset"

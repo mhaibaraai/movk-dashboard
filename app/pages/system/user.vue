@@ -49,18 +49,19 @@ watch(allDeptKeys, (keys) => {
 
 // 顶部搜索
 const searchSchema = afz.object({
-  username: afz.string({ controlProps: { placeholder: '用户名' } }).optional().meta({ label: '用户名' }),
-  nickname: afz.string({ controlProps: { placeholder: '昵称' } }).optional().meta({ label: '昵称' }),
-  phone: afz.string({ controlProps: { placeholder: '手机号' } }).optional().meta({ label: '手机号' }),
+  username: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-user', label: '用户名' } }).optional(),
+  nickname: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-user-round', label: '昵称' } }).optional(),
+  phone: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-phone', label: '手机号' } }).optional(),
   status: afz.enum(['ACTIVE', 'DISABLED', 'LOCKED', 'DELETED'], {
     type: 'selectMenu',
     controlProps: {
+      icon: 'i-lucide-toggle-left',
       placeholder: '状态',
       clear: true,
       valueKey: 'value',
       items: [...statusItems, { label: '已删除', value: 'DELETED' }]
     }
-  }).optional().meta({ label: '状态' })
+  }).optional()
 })
 type SearchSchema = z.output<typeof searchSchema>
 const searchState = ref<Partial<SearchSchema>>({})
@@ -229,7 +230,7 @@ async function onBatchDelete() {
 </script>
 
 <template>
-  <div class="flex gap-4">
+  <div class="flex gap-4 min-h-0 flex-1">
     <aside class="w-60 shrink-0">
       <div class="flex h-full flex-col gap-2 rounded-md border border-default p-2">
         <UTree
@@ -243,10 +244,11 @@ async function onBatchDelete() {
       </div>
     </aside>
 
-    <div class="flex min-w-0 flex-1 flex-col gap-4">
+    <div class="flex min-w-0 flex-1 flex-col gap-4 min-h-0">
       <MSearchForm
         v-model="searchState"
         :schema="searchSchema"
+        :global-meta="{ label: '' }"
         :cols="5"
         @submit="onSearch"
         @reset="onSearchReset"

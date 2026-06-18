@@ -16,12 +16,12 @@ const typeItems = [{ label: '内置', value: 'BUILTIN' }, { label: '自定义', 
 
 // 顶部搜索（后端无 query 参数，客户端过滤）
 const searchSchema = afz.object({
-  configName: afz.string({ controlProps: { placeholder: '配置名称' } }).optional().meta({ label: '配置名称' }),
-  configKey: afz.string({ controlProps: { placeholder: '配置键名' } }).optional().meta({ label: '配置键名' }),
+  configName: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-settings', label: '配置名称' } }).optional(),
+  configKey: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-key', label: '配置键名' } }).optional(),
   configType: afz.enum(['BUILTIN', 'CUSTOM'], {
     type: 'selectMenu',
-    controlProps: { placeholder: '配置类型', clear: true, valueKey: 'value', items: typeItems }
-  }).optional().meta({ label: '配置类型' })
+    controlProps: { icon: 'i-lucide-tag', placeholder: '配置类型', clear: true, valueKey: 'value', items: typeItems }
+  }).optional()
 })
 type ConfigSearch = z.output<typeof searchSchema>
 const searchState = ref<Partial<InferInput<typeof searchSchema>>>({})
@@ -152,10 +152,11 @@ const columns: DataTableColumn<ConfigResp>[] = [
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4 min-h-0 flex-1">
     <MSearchForm
       v-model="searchState"
       :schema="searchSchema"
+      :global-meta="{ label: '' }"
       :cols="4"
       @submit="onSearch"
       @reset="onSearchReset"

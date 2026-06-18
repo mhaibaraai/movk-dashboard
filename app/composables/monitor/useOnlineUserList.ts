@@ -12,7 +12,7 @@ export function useOnlineUserList() {
   })
 
   const onlineUsers = computed(() => data.value?.content ?? [])
-  const total = computed(() => data.value?.totalElements ?? 0)
+  const total = computed(() => data.value?.page?.totalElements ?? 0)
 
   async function handleForceLogout(tokenId: string) {
     await onlineUserApi.forceLogoutSession(tokenId)

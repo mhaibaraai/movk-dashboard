@@ -173,7 +173,7 @@ const columns: DataTableColumn<MenuResp>[] = [
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4 min-h-0 flex-1">
     <AppDataTable
       children-key="children"
       row-key="id"

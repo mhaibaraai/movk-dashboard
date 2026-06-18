@@ -30,8 +30,8 @@ const dataPagination = ref<PaginationState>({ pageIndex: 0, pageSize: 10 })
 
 // 类型搜索（客户端过滤）
 const typeSearchSchema = afz.object({
-  dictName: afz.string({ controlProps: { placeholder: '字典名称' } }).optional().meta({ label: '字典名称' }),
-  dictType: afz.string({ controlProps: { placeholder: '字典类型' } }).optional().meta({ label: '字典类型' })
+  dictName: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-book', label: '字典名称' } }).optional(),
+  dictType: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-tag', label: '字典类型' } }).optional()
 })
 type TypeSearch = z.output<typeof typeSearchSchema>
 const typeSearchState = ref<Partial<InferInput<typeof typeSearchSchema>>>({})
@@ -274,11 +274,12 @@ const dataColumns: DataTableColumn<DictDataResp>[] = [
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 lg:flex-row">
-    <div class="flex min-w-0 flex-col gap-4 lg:w-2/5">
+  <div class="flex flex-col gap-4 lg:flex-row min-h-0 flex-1">
+    <div class="flex min-w-0 flex-col gap-4 lg:w-2/5 min-h-0">
       <MSearchForm
         v-model="typeSearchState"
         :schema="typeSearchSchema"
+        :global-meta="{ label: '' }"
         :cols="3"
         @submit="onTypeSearch"
         @reset="onTypeSearchReset"
@@ -298,7 +299,7 @@ const dataColumns: DataTableColumn<DictDataResp>[] = [
       </AppDataTable>
     </div>
 
-    <div class="flex min-w-0 flex-1 flex-col gap-4">
+    <div class="flex min-w-0 flex-1 flex-col gap-4 min-h-0">
       <AppDataTable
         v-model:pagination="dataPagination"
         row-key="id"

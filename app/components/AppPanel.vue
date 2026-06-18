@@ -20,7 +20,7 @@ defineSlots<{
 </script>
 
 <template>
-  <UDashboardPanel :id="id">
+  <UDashboardPanel :id="id" :ui="{ body: 'min-h-0 overflow-y-hidden' }">
     <template #header>
       <UDashboardNavbar :title="title" :icon="icon">
         <template #leading>

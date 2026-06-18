@@ -1,4 +1,4 @@
-import type { SelectOption } from './useUserFormOptions'
+import type { SelectOption } from './useDeptOptions'
 
 // 用户下拉选项源：部门负责人等关系字段选择器复用
 export function useUserOptions() {
