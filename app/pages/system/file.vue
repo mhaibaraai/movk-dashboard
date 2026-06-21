@@ -29,9 +29,6 @@ const searchState = ref<Partial<FileSearch>>({})
 function onSearch(event: FormSubmitEvent<FileSearch>) {
   handleSearch(event.data)
 }
-function onSearchReset() {
-  handleSearch({ originalName: undefined, category: undefined, contentType: undefined })
-}
 
 // 上传
 const isUploadOpen = ref(false)
@@ -146,7 +143,7 @@ const columns: DataTableColumn<FileResp>[] = [
       :global-meta="{ label: '' }"
       :cols="4"
       @submit="onSearch"
-      @reset="onSearchReset"
+      @reset="handleSearch"
     />
 
     <AppDataTable

@@ -50,9 +50,6 @@ const searchState = ref<Partial<InferInput<typeof searchSchema>>>({})
 function onSearch(event: FormSubmitEvent<RoleSearch>) {
   handleSearch(event.data)
 }
-function onSearchReset() {
-  handleSearch({})
-}
 
 // 新增 / 编辑
 const isOpen = ref(false)
@@ -217,7 +214,7 @@ const columns: DataTableColumn<RoleResp>[] = [
       :global-meta="{ label: '' }"
       :cols="5"
       @submit="onSearch"
-      @reset="onSearchReset"
+      @reset="handleSearch"
     />
 
     <AppDataTable

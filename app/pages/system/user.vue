@@ -35,16 +35,9 @@ const rowSelectionKeys = ref<string[]>([])
 const selectedDept = ref()
 watch(selectedDept, dept => handleSearch({ deptId: dept?.value }))
 
-// 部门树：点击只过滤；展开态在客户端挂载后再设置。SSR setup 时数据未就绪、
-// 客户端 hydration 时数据已就绪，若用 watch immediate 会得到不同展开态而水合不一致；
-// 故首屏两端都渲染为空，挂载后（仅客户端）再展开。
-const allDeptKeys = computed(() => Tree.toList(deptTreeItems.value).map(n => n.value))
 const expandedDeptKeys = ref<string[]>([])
 onMounted(() => {
-  expandedDeptKeys.value = allDeptKeys.value
-})
-watch(allDeptKeys, (keys) => {
-  expandedDeptKeys.value = keys
+  expandedDeptKeys.value = Tree.toList(deptTreeItems.value).map(n => n.value)
 })
 
 // 顶部搜索
@@ -68,9 +61,6 @@ const searchState = ref<Partial<SearchSchema>>({})
 
 function onSearch(event: FormSubmitEvent<SearchSchema>) {
   handleSearch(event.data)
-}
-function onSearchReset() {
-  handleSearch({ username: undefined, nickname: undefined, phone: undefined, status: undefined })
 }
 
 // 新增 / 编辑
@@ -251,7 +241,7 @@ async function onBatchDelete() {
         :global-meta="{ label: '' }"
         :cols="5"
         @submit="onSearch"
-        @reset="onSearchReset"
+        @reset="handleSearch"
       />
 
       <AppDataTable

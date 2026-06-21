@@ -23,9 +23,6 @@ const searchState = ref<Partial<OnlineSearch>>({})
 function onSearch(event: FormSubmitEvent<OnlineSearch>) {
   handleSearch(event.data)
 }
-function onSearchReset() {
-  handleSearch({ username: undefined, loginIp: undefined })
-}
 
 async function onBatchForceLogout() {
   await handleBatchForceLogout(rowSelectionKeys.value)
@@ -84,7 +81,7 @@ const columns: DataTableColumn<OnlineUserResp>[] = [
       :global-meta="{ label: '' }"
       :cols="3"
       @submit="onSearch"
-      @reset="onSearchReset"
+      @reset="handleSearch"
     />
 
     <AppDataTable

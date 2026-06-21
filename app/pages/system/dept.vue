@@ -94,6 +94,7 @@ const columns: DataTableColumn<DeptResp>[] = [
   {
     accessorKey: 'createdAt',
     header: '创建时间',
+    sortable: true,
     cell: ({ row }) => formatter.format(formatter.fromISO(row.original.createdAt))
   },
   {
@@ -139,6 +140,7 @@ const columns: DataTableColumn<DeptResp>[] = [
       :columns="columns"
       :data="tree"
       :loading="pending"
+      :pagination-ui="{}"
     >
       <template #toolbar-right>
         <UButton icon="i-lucide-plus" @click="openCreate()">
