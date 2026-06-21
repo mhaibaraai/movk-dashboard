@@ -4,7 +4,7 @@ import type { FileListQuery } from '~/api/system/file'
 export function useFileList() {
   const fileApi = useFileApi()
 
-  const query = ref<FileListQuery>({ page: 0, size: 20 })
+  const query = ref<FileListQuery>({ page: 0, size: 10 })
 
   const { data, pending, refresh } = useApiFetch<PageResp<FileResp>>('/v1/system/files', {
     query,

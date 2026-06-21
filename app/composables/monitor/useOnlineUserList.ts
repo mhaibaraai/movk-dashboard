@@ -3,7 +3,7 @@ import { useOnlineUserApi } from '~/api/monitor/online-user'
 export function useOnlineUserList() {
   const onlineUserApi = useOnlineUserApi()
 
-  const query = ref<OnlineUserListQuery>({ page: 0, size: 20 })
+  const query = ref<OnlineUserListQuery>({ page: 0, size: 10 })
 
   const { data, pending, refresh } = useApiFetch<PageResp<OnlineUserResp>>('/v1/monitor/online-users', {
     query,

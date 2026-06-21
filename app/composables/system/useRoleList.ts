@@ -6,7 +6,7 @@ export function useRoleList() {
 
   const query = ref<RoleListQuery>({
     page: 0,
-    size: 20
+    size: 10
   })
 
   const { data, pending, refresh } = useApiFetch<PageResp<RoleResp>>(

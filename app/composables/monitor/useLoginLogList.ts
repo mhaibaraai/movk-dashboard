@@ -3,7 +3,7 @@ import { useLoginLogApi } from '~/api/monitor/login-log'
 export function useLoginLogList() {
   const loginLogApi = useLoginLogApi()
 
-  const query = ref<LoginLogListQuery>({ page: 0, size: 20 })
+  const query = ref<LoginLogListQuery>({ page: 0, size: 10 })
 
   const { data, pending, refresh } = useApiFetch<PageResp<LoginLogResp>>('/v1/monitor/login-logs', {
     query,
