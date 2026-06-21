@@ -16,7 +16,7 @@ const searchGroups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [
   label: '前往',
   items: navigation.flat().map(item => ({
     label: item.label,
-    icon: item.icon,
+    icon: normalizeIconName(item.icon),
     to: item.to,
     target: item.target
   }))
