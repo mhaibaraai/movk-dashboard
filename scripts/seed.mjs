@@ -146,9 +146,9 @@ const posts = [
 const postIdByCode = {}
 
 async function seedPosts() {
-  const list = await get('/v1/system/posts').catch(() => [])
+  const page = await get('/v1/system/posts', { page: 0, size: 100 }).catch(() => ({ content: [] }))
   // 唯一约束大小写不敏感，按小写键判重并复用已有内置岗位
-  const existing = new Map((list || []).map(p => [p.postCode.toLowerCase(), p.id]))
+  const existing = new Map((page?.content || []).map(p => [p.postCode.toLowerCase(), p.id]))
   for (const p of posts) {
     let id = existing.get(p.postCode.toLowerCase())
     if (id) {
