@@ -17,13 +17,40 @@ const bottomGroup: NavigationMenuItem[] = [
   }
 ]
 
+// 动态/参数路由不作为登录后落地首选
+function hasRouteParams(path: string): boolean {
+  return /[:*]/.test(path) || path.includes('[')
+}
+
 export function useNavigation() {
   const { currentUser } = useCurrentUser()
 
+  // 菜单树单一来源：导航、访问白名单、落地路由共用
+  const menus = computed<MenuTreeResp[]>(() => (currentUser.value?.menus ?? []) as MenuTreeResp[])
+
+  // 可访问路径白名单：取全部菜单 path（visible 仅控显隐，不等于不可访问，隐藏页仍可直达）
+  const accessiblePaths = computed<Set<string>>(() => {
+    const paths = Tree.toList(menus.value)
+      .map(node => node.path)
+      .filter((path): path is string => Boolean(path))
+    return new Set(paths)
+  })
+
+  // 登录后落地：首个可见叶子菜单（非目录、非参数路由），前序 DFS 取首位
+  const homeRoute = computed<string | undefined>(() => {
+    const flat = Tree.toList(menus.value)
+    const parentIds = new Set(flat.map(node => node.parentId).filter(Boolean))
+    return flat.find(node =>
+      node.path
+      && node.visible !== false
+      && !parentIds.has(node.id)
+      && !hasRouteParams(node.path)
+    )?.path ?? undefined
+  })
+
   // 主导航由当前用户的路由菜单树（/v1/auth/me 的 menus）动态生成，层级随后端配置
   const mainNavigation = computed<NavigationMenuItem[]>(() => {
-    const menus = (currentUser.value?.menus ?? []) as MenuTreeResp[]
-    const visibleMenus = Tree.filter(menus, ({ node }) => node.visible !== false)
+    const visibleMenus = Tree.filter(menus.value, ({ node }) => node.visible !== false)
     return Tree.transform<MenuTreeResp, NavigationMenuItem>(visibleMenus, ({ node, depth }) => {
       const hasChildren = Array.isArray(node.children) && node.children.length > 0
       return {
@@ -53,5 +80,5 @@ export function useNavigation() {
     return mainNavigation.value.find(item => item.to === basePath)?.children ?? []
   }
 
-  return { navigation, groups, getSectionLinks }
+  return { navigation, groups, getSectionLinks, accessiblePaths, homeRoute }
 }

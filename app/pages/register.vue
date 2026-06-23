@@ -2,7 +2,8 @@
 import { WithPasswordStrengthIndicator } from '#components'
 
 definePageMeta({
-  layout: 'cert'
+  layout: 'cert',
+  public: true
 })
 
 const { afz } = useAutoForm()
