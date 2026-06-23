@@ -1,20 +1,24 @@
 <script setup lang="ts">
-import type { DataTableColumn, PaginationState } from '@movk/nuxt'
+import type { DataTableColumn } from '@movk/nuxt'
 import type { FormSubmitEvent, InferInput } from '@nuxt/ui'
 import type { z } from 'zod'
 import { UBadge } from '#components'
 import type { PostCreateReq, PostUpdateReq } from '~/api/system/post'
 import { ENABLED_DISABLED_COLOR, ENABLED_DISABLED_LABEL } from '~/constants/system'
 
-const { posts, pending, handleCreate, handleUpdate, handleDelete, getDetail } = usePostList()
+const {
+  posts, total, pending, query,
+  handleCreate, handleUpdate, handleDelete, getDetail, handlePagination, handleSearch
+} = usePostList()
 const { afz } = useAutoForm()
+const { hasPermission } = usePermission()
 const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle: 'medium', timeStyle: 'medium' } })
 
-const pagination = ref<PaginationState>({ pageIndex: 0, pageSize: 10 })
+const pagination = useTablePagination(query.value.size ?? 20, handlePagination)
 
 const statusItems = [{ label: '启用', value: 'ENABLED' }, { label: '禁用', value: 'DISABLED' }]
 
-// 顶部搜索（后端无 query 参数，客户端过滤）
+// 顶部搜索（服务端分页过滤）
 const searchSchema = afz.object({
   postCode: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-hash', label: '岗位编码' } }).optional(),
   postName: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-briefcase', label: '岗位名称' } }).optional(),
@@ -25,24 +29,10 @@ const searchSchema = afz.object({
 })
 type PostSearch = z.output<typeof searchSchema>
 const searchState = ref<Partial<InferInput<typeof searchSchema>>>({})
-const appliedSearch = ref<Partial<PostSearch>>({})
 
 function onSearch(event: FormSubmitEvent<PostSearch>) {
-  appliedSearch.value = event.data
+  handleSearch(event.data)
 }
-function onSearchReset() {
-  appliedSearch.value = {}
-}
-
-const filteredPosts = computed(() => {
-  const { postCode, postName, status } = appliedSearch.value
-  return posts.value.filter((p) => {
-    if (postCode && !p.postCode.toLowerCase().includes(postCode.toLowerCase())) return false
-    if (postName && !p.postName.toLowerCase().includes(postName.toLowerCase())) return false
-    if (status && p.status !== status) return false
-    return true
-  })
-})
 
 const isOpen = ref(false)
 const isEditing = ref(false)
@@ -97,9 +87,9 @@ async function onSubmit(event: FormSubmitEvent<PostSchema>) {
 }
 
 const columns: DataTableColumn<PostResp>[] = [
-  { accessorKey: 'postCode', header: '岗位编码', sortable: true },
-  { accessorKey: 'postName', header: '岗位名称', sortable: true },
-  { accessorKey: 'orderNum', header: '排序', sortable: true },
+  { accessorKey: 'postCode', header: '岗位编码' },
+  { accessorKey: 'postName', header: '岗位名称' },
+  { accessorKey: 'orderNum', header: '排序' },
   {
     accessorKey: 'status',
     header: '状态',
@@ -112,7 +102,6 @@ const columns: DataTableColumn<PostResp>[] = [
   {
     accessorKey: 'createdAt',
     header: '创建时间',
-    sortable: true,
     cell: ({ row }) => formatter.format(formatter.fromISO(row.original.createdAt))
   },
   {
@@ -122,11 +111,13 @@ const columns: DataTableColumn<PostResp>[] = [
     actions: [
       {
         key: 'edit',
+        visibility: hasPermission('system:post:update'),
         buttonProps: { icon: 'i-lucide-pencil', variant: 'ghost', size: 'xs' },
         onClick: ({ row }) => openEdit(row.id)
       },
       {
         key: 'delete',
+        visibility: hasPermission('system:post:delete'),
         buttonProps: { icon: 'i-lucide-trash-2', color: 'error', variant: 'ghost', size: 'xs' },
         confirm: true,
         confirmProps: ({ row }) => ({
@@ -152,18 +143,19 @@ const columns: DataTableColumn<PostResp>[] = [
       :global-meta="{ label: '' }"
       :cols="4"
       @submit="onSearch"
-      @reset="onSearchReset"
+      @reset="handleSearch"
     />
 
     <AppDataTable
       v-model:pagination="pagination"
       row-key="id"
       :columns="columns"
-      :data="filteredPosts"
+      :data="posts"
       :loading="pending"
+      :pagination-options="{ manualPagination: true, rowCount: total }"
     >
       <template #toolbar-right>
-        <UButton icon="i-lucide-plus" @click="openCreate">
+        <UButton v-permission="'system:post:create'" icon="i-lucide-plus" @click="openCreate">
           新增岗位
         </UButton>
       </template>

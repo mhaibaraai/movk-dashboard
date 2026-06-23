@@ -8,6 +8,7 @@ import { CONFIG_TYPE_COLOR, CONFIG_TYPE_LABEL } from '~/constants/system'
 
 const { configs, pending, handleCreate, handleUpdate, handleDelete, handleRefreshCache, getDetail } = useConfigList()
 const { afz } = useAutoForm()
+const { hasPermission } = usePermission()
 const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle: 'medium', timeStyle: 'medium' } })
 
 const pagination = ref<PaginationState>({ pageIndex: 0, pageSize: 10 })
@@ -123,11 +124,13 @@ const columns: DataTableColumn<ConfigResp>[] = [
     actions: [
       {
         key: 'edit',
+        visibility: hasPermission('system:config:update'),
         buttonProps: { icon: 'i-lucide-pencil', variant: 'ghost', size: 'xs' },
         onClick: ({ row }) => openEdit(row.id)
       },
       {
         key: 'delete',
+        visibility: hasPermission('system:config:delete'),
         buttonProps: ({ row }) => ({
           icon: 'i-lucide-trash-2',
           color: 'error',
@@ -173,7 +176,7 @@ const columns: DataTableColumn<ConfigResp>[] = [
         <UButton icon="i-lucide-refresh-cw" variant="outline" color="neutral" @click="handleRefreshCache">
           刷新缓存
         </UButton>
-        <UButton icon="i-lucide-plus" @click="openCreate">
+        <UButton v-permission="'system:config:create'" icon="i-lucide-plus" @click="openCreate">
           新增配置
         </UButton>
       </template>

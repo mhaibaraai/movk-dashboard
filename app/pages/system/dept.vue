@@ -10,6 +10,7 @@ import { ENABLED_DISABLED_COLOR, ENABLED_DISABLED_LABEL } from '~/constants/syst
 const { tree, pending, handleCreate, handleUpdate, handleDelete, getDetail } = useDeptTree()
 const { userOptions } = useUserOptions()
 const { afz } = useAutoForm()
+const { hasPermission } = usePermission()
 const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle: 'medium', timeStyle: 'medium' } })
 
 const statusItems = [{ label: '启用', value: 'ENABLED' }, { label: '禁用', value: 'DISABLED' }]
@@ -94,6 +95,7 @@ const columns: DataTableColumn<DeptResp>[] = [
   {
     accessorKey: 'createdAt',
     header: '创建时间',
+    sortable: true,
     cell: ({ row }) => formatter.format(formatter.fromISO(row.original.createdAt))
   },
   {
@@ -103,18 +105,20 @@ const columns: DataTableColumn<DeptResp>[] = [
     actions: [
       {
         key: 'addChild',
+        visibility: hasPermission('system:dept:create'),
         buttonProps: { icon: 'i-lucide-plus', variant: 'ghost', size: 'xs' },
         onClick: ({ row }) => openCreate(row.id)
       },
       {
         key: 'edit',
+        visibility: hasPermission('system:dept:update'),
         buttonProps: { icon: 'i-lucide-pencil', variant: 'ghost', size: 'xs' },
         onClick: ({ row }) => openEdit(row.id)
       },
       {
         key: 'delete',
         buttonProps: { icon: 'i-lucide-trash-2', color: 'error', variant: 'ghost', size: 'xs' },
-        visibility: ({ row }) => !(row.children && row.children.length),
+        visibility: ({ row }) => hasPermission('system:dept:delete') && !(row.children && row.children.length),
         confirm: true,
         confirmProps: ({ row }) => ({
           type: 'warning',
@@ -139,9 +143,10 @@ const columns: DataTableColumn<DeptResp>[] = [
       :columns="columns"
       :data="tree"
       :loading="pending"
+      :pagination-ui="{}"
     >
       <template #toolbar-right>
-        <UButton icon="i-lucide-plus" @click="openCreate()">
+        <UButton v-permission="'system:dept:create'" icon="i-lucide-plus" @click="openCreate()">
           新增部门
         </UButton>
       </template>

@@ -1,15 +1,25 @@
 import { usePostApi } from '~/api/system/post'
-import type { PostCreateReq, PostUpdateReq } from '~/api/system/post'
+import type { PostListQuery, PostCreateReq, PostUpdateReq } from '~/api/system/post'
 
 export function usePostList() {
   const postApi = usePostApi()
 
-  // /posts 返回全量列表（非分页）
-  const { data, pending, refresh } = useApiFetch<PostResp[]>('/v1/system/posts', {
-    toast: false
+  const query = ref<PostListQuery>({
+    page: 0,
+    size: 10
   })
 
-  const posts = computed(() => data.value ?? [])
+  const { data, pending, refresh } = useApiFetch<PageResp<PostResp>>(
+    '/v1/system/posts',
+    {
+      query,
+      watch: [query],
+      toast: false
+    }
+  )
+
+  const posts = computed(() => data.value?.content ?? [])
+  const total = computed(() => data.value?.page?.totalElements ?? 0)
 
   async function handleCreate(body: PostCreateReq) {
     await postApi.create(body)
@@ -30,13 +40,25 @@ export function usePostList() {
     return postApi.getById(id)
   }
 
+  function handlePagination(page: number, size: number) {
+    query.value = { ...query.value, page, size }
+  }
+
+  function handleSearch(params: Partial<PostListQuery>) {
+    query.value = { ...query.value, ...params, page: 0 }
+  }
+
   return {
+    query: readonly(query),
     posts,
+    total,
     pending,
     refresh,
     handleCreate,
     handleUpdate,
     handleDelete,
-    getDetail
+    getDetail,
+    handlePagination,
+    handleSearch
   }
 }

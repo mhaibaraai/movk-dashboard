@@ -140,7 +140,7 @@ const detailFields: { label: string, key: keyof OperateLogResp }[] = [
       :pagination-options="{ manualPagination: true, rowCount: total }"
     >
       <template #toolbar-right>
-        <UButton icon="i-lucide-trash-2" color="error" variant="soft" @click="isCleanOpen = true">
+        <UButton v-permission="'monitor:operateLog:delete'" icon="i-lucide-trash-2" color="error" variant="soft" @click="isCleanOpen = true">
           清理
         </UButton>
         <UButton icon="i-lucide-download" variant="outline" color="neutral" :loading="exportStatus === 'pending'" @click="onExport">

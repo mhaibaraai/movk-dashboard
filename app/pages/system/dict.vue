@@ -13,6 +13,7 @@ const {
   handleRefreshCache
 } = useDictList()
 const { afz } = useAutoForm()
+const { hasPermission } = usePermission()
 const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle: 'medium', timeStyle: 'medium' } })
 
 const statusItems = [{ label: '启用', value: 'ENABLED' }, { label: '禁用', value: 'DISABLED' }]
@@ -192,11 +193,13 @@ const typeColumns: DataTableColumn<DictTypeResp>[] = [
       },
       {
         key: 'edit',
+        visibility: hasPermission('system:dict:update'),
         buttonProps: { icon: 'i-lucide-pencil', variant: 'ghost', size: 'xs' },
         onClick: ({ row }) => openEditType(row.id)
       },
       {
         key: 'delete',
+        visibility: hasPermission('system:dict:delete'),
         buttonProps: { icon: 'i-lucide-trash-2', color: 'error', variant: 'ghost', size: 'xs' },
         confirm: true,
         confirmProps: ({ row }) => ({
@@ -251,11 +254,13 @@ const dataColumns: DataTableColumn<DictDataResp>[] = [
     actions: [
       {
         key: 'edit',
+        visibility: hasPermission('system:dict:update'),
         buttonProps: { icon: 'i-lucide-pencil', variant: 'ghost', size: 'xs' },
         onClick: ({ row }) => openEditData(row.id)
       },
       {
         key: 'delete',
+        visibility: hasPermission('system:dict:delete'),
         buttonProps: { icon: 'i-lucide-trash-2', color: 'error', variant: 'ghost', size: 'xs' },
         confirm: true,
         confirmProps: ({ row }) => ({
@@ -292,7 +297,7 @@ const dataColumns: DataTableColumn<DictDataResp>[] = [
         :loading="typePending"
       >
         <template #toolbar-right>
-          <UButton icon="i-lucide-plus" @click="openCreateType">
+          <UButton v-permission="'system:dict:create'" icon="i-lucide-plus" @click="openCreateType">
             新增类型
           </UButton>
         </template>
@@ -316,7 +321,7 @@ const dataColumns: DataTableColumn<DictDataResp>[] = [
           <UButton icon="i-lucide-refresh-cw" variant="outline" color="neutral" @click="handleRefreshCache">
             刷新缓存
           </UButton>
-          <UButton icon="i-lucide-plus" :disabled="!selectedType" @click="openCreateData">
+          <UButton v-permission="'system:dict:create'" icon="i-lucide-plus" :disabled="!selectedType" @click="openCreateData">
             新增数据
           </UButton>
         </template>

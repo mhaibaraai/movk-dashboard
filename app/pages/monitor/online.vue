@@ -8,6 +8,7 @@ const {
   handleForceLogout, handleBatchForceLogout, handlePagination, handleSearch
 } = useOnlineUserList()
 const { afz } = useAutoForm()
+const { hasPermission } = usePermission()
 const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle: 'medium', timeStyle: 'medium' } })
 
 const pagination = useTablePagination(query.value.size ?? 20, handlePagination)
@@ -22,9 +23,6 @@ const searchState = ref<Partial<OnlineSearch>>({})
 
 function onSearch(event: FormSubmitEvent<OnlineSearch>) {
   handleSearch(event.data)
-}
-function onSearchReset() {
-  handleSearch({ username: undefined, loginIp: undefined })
 }
 
 async function onBatchForceLogout() {
@@ -59,6 +57,7 @@ const columns: DataTableColumn<OnlineUserResp>[] = [
     actions: [
       {
         key: 'logout',
+        visibility: hasPermission('monitor:online:kick'),
         buttonProps: { icon: 'i-lucide-log-out', color: 'error', variant: 'ghost', size: 'xs' },
         confirm: true,
         confirmProps: ({ row }) => ({
@@ -84,7 +83,7 @@ const columns: DataTableColumn<OnlineUserResp>[] = [
       :global-meta="{ label: '' }"
       :cols="3"
       @submit="onSearch"
-      @reset="onSearchReset"
+      @reset="handleSearch"
     />
 
     <AppDataTable
@@ -99,6 +98,7 @@ const columns: DataTableColumn<OnlineUserResp>[] = [
       <template #toolbar-right>
         <UButton
           v-if="rowSelectionKeys.length > 0"
+          v-permission="'monitor:online:kick'"
           icon="i-lucide-log-out"
           color="error"
           variant="soft"

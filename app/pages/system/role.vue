@@ -5,7 +5,7 @@ import type { z } from 'zod'
 import { Tree } from '@movk/core'
 import { UBadge } from '#components'
 import type { RoleCreateReq, RoleUpdateReq } from '~/api/system/role'
-import { ENABLED_DISABLED_COLOR, ENABLED_DISABLED_LABEL } from '~/constants/system'
+import { ENABLED_DISABLED_COLOR, ENABLED_DISABLED_LABEL, MENU_TYPE_COLOR, MENU_TYPE_ICON, MENU_TYPE_LABEL } from '~/constants/system'
 
 const {
   roles, total, pending, query,
@@ -14,6 +14,7 @@ const {
 } = useRoleList()
 
 const { afz } = useAutoForm()
+const { hasPermission } = usePermission()
 const { deptOptions } = useDeptOptions()
 const { tree: menuTree } = useMenuTree()
 const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle: 'medium', timeStyle: 'medium' } })
@@ -49,9 +50,6 @@ const searchState = ref<Partial<InferInput<typeof searchSchema>>>({})
 
 function onSearch(event: FormSubmitEvent<RoleSearch>) {
   handleSearch(event.data)
-}
-function onSearchReset() {
-  handleSearch({})
 }
 
 // 新增 / 编辑
@@ -122,20 +120,46 @@ async function onDeleteBatch() {
 }
 
 // 分配菜单（UTree multiple 的 model 为节点对象数组，需与 menuIds 互转）
-interface MenuTreeNode { label: string, value: string }
+interface MenuTreeNode { label: string, value: string, type: MenuType, icon: string }
 const assignOpen = ref(false)
 const assignRoleId = ref<string | null>(null)
 const assignSelected = ref<MenuTreeNode[]>([])
+const expandedKeys = ref<string[]>([])
 const menuTreeItems = computed(() =>
-  Tree.transform(menuTree.value, ({ node }) => ({ label: node.name, value: node.id }))
+  Tree.transform(menuTree.value, ({ node }) => ({
+    label: node.name,
+    value: node.id,
+    type: node.type,
+    icon: node.icon || MENU_TYPE_ICON[node.type] || 'i-lucide-file'
+  }))
 )
 const menuTreeFlat = computed(() => Tree.toList(menuTreeItems.value))
+
+const allExpanded = computed(() =>
+  menuTreeFlat.value.length > 0 && expandedKeys.value.length >= menuTreeFlat.value.length
+)
+function toggleExpandAll() {
+  expandedKeys.value = allExpanded.value ? [] : menuTreeFlat.value.map(n => n.value)
+}
+function toggleNode(value: string) {
+  expandedKeys.value = expandedKeys.value.includes(value)
+    ? expandedKeys.value.filter(k => k !== value)
+    : [...expandedKeys.value, value]
+}
+
+const allSelected = computed(() =>
+  menuTreeFlat.value.length > 0 && assignSelected.value.length >= menuTreeFlat.value.length
+)
+function toggleSelectAll() {
+  assignSelected.value = allSelected.value ? [] : [...menuTreeFlat.value]
+}
 
 async function openAssign(id: string) {
   assignRoleId.value = id
   const detail = await getDetail(id)
   const ids = detail.menuIds ?? []
   assignSelected.value = menuTreeFlat.value.filter(n => ids.includes(n.value))
+  expandedKeys.value = []
   assignOpen.value = true
 }
 
@@ -181,18 +205,20 @@ const columns: DataTableColumn<RoleResp>[] = [
     actions: [
       {
         key: 'edit',
+        visibility: hasPermission('system:role:update'),
         buttonProps: { icon: 'i-lucide-pencil', variant: 'ghost', size: 'xs' },
         onClick: ({ row }) => openEdit(row.id)
       },
       {
         key: 'assign',
+        visibility: hasPermission('system:role:update'),
         buttonProps: { icon: 'i-lucide-list-tree', variant: 'ghost', size: 'xs' },
         onClick: ({ row }) => openAssign(row.id)
       },
       {
         key: 'delete',
         buttonProps: { icon: 'i-lucide-trash-2', color: 'error', variant: 'ghost', size: 'xs' },
-        visibility: ({ row }) => row.roleType !== 'BUILT_IN',
+        visibility: ({ row }) => hasPermission('system:role:delete') && row.roleType !== 'BUILT_IN',
         confirm: true,
         confirmProps: ({ row }) => ({
           type: 'warning',
@@ -217,7 +243,7 @@ const columns: DataTableColumn<RoleResp>[] = [
       :global-meta="{ label: '' }"
       :cols="5"
       @submit="onSearch"
-      @reset="onSearchReset"
+      @reset="handleSearch"
     />
 
     <AppDataTable
@@ -232,6 +258,7 @@ const columns: DataTableColumn<RoleResp>[] = [
       <template #toolbar-right>
         <UButton
           v-if="rowSelectionKeys.length > 0"
+          v-permission="'system:role:delete'"
           color="error"
           variant="soft"
           icon="i-lucide-trash-2"
@@ -239,7 +266,7 @@ const columns: DataTableColumn<RoleResp>[] = [
         >
           批量删除（{{ rowSelectionKeys.length }}）
         </UButton>
-        <UButton icon="i-lucide-plus" @click="openCreate">
+        <UButton v-permission="'system:role:create'" icon="i-lucide-plus" @click="openCreate">
           新增角色
         </UButton>
       </template>
@@ -269,13 +296,75 @@ const columns: DataTableColumn<RoleResp>[] = [
 
     <USlideover v-model:open="assignOpen" title="分配菜单" class="w-120">
       <template #body>
-        <UTree
-          v-model="assignSelected"
-          :items="menuTreeItems"
-          :get-key="(item) => item.value"
-          multiple
-          propagate-select
-        />
+        <div class="flex flex-col gap-2 min-h-0 h-full">
+          <div class="flex items-center justify-between">
+            <UButton
+              variant="ghost"
+              color="neutral"
+              size="xs"
+              :icon="allExpanded ? 'i-lucide-chevrons-down-up' : 'i-lucide-chevrons-up-down'"
+              @click="toggleExpandAll"
+            >
+              {{ allExpanded ? '折叠全部' : '展开全部' }}
+            </UButton>
+            <UButton
+              variant="ghost"
+              color="neutral"
+              size="xs"
+              :icon="allSelected ? 'i-lucide-square' : 'i-lucide-square-check'"
+              @click="toggleSelectAll"
+            >
+              {{ allSelected ? '清空' : '全选' }}
+            </UButton>
+          </div>
+
+          <UTree
+            v-model="assignSelected"
+            v-model:expanded="expandedKeys"
+            :items="menuTreeItems"
+            :get-key="(item) => item.value"
+            :as="{ link: 'div' }"
+            :ui="{ link: 'before:bg-transparent' }"
+            multiple
+            propagate-select
+            class="flex-1 overflow-auto"
+            @toggle="(e) => e.preventDefault()"
+          >
+            <template #item-leading="{ item, selected, indeterminate }">
+              <UCheckbox
+                :model-value="selected"
+                :indeterminate="indeterminate"
+                tabindex="-1"
+                class="pointer-events-none"
+              />
+              <UIcon :name="item.icon" class="size-4 shrink-0 text-muted" />
+            </template>
+            <template #item-label="{ item }">
+              <span class="truncate">{{ item.label }}</span>
+              <UBadge
+                v-if="item.type === 'BUTTON'"
+                :color="MENU_TYPE_COLOR.BUTTON"
+                variant="subtle"
+                size="sm"
+                class="ml-2"
+              >
+                {{ MENU_TYPE_LABEL.BUTTON }}
+              </UBadge>
+            </template>
+            <template #item-trailing="{ item, expanded }">
+              <UButton
+                v-if="item.children?.length"
+                icon="i-lucide-chevron-down"
+                color="neutral"
+                variant="ghost"
+                size="xs"
+                class="transition-transform"
+                :class="expanded ? '' : '-rotate-90'"
+                @click.stop="toggleNode(item.value)"
+              />
+            </template>
+          </UTree>
+        </div>
       </template>
       <template #footer>
         <div class="flex w-full justify-end gap-2">

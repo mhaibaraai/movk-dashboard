@@ -14,9 +14,9 @@ watch(() => route.path, () => {
 const searchGroups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [{
   id: 'links',
   label: '前往',
-  items: navigation.flat().map(item => ({
+  items: navigation.value.flat().map(item => ({
     label: item.label,
-    icon: item.icon,
+    icon: normalizeIconName(item.icon),
     to: item.to,
     target: item.target
   }))

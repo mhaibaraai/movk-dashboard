@@ -1,3 +1,5 @@
+import type { MenuTreeResp } from './system'
+
 export interface LoginPayload {
   /** 访问令牌 */
   access_token: string
@@ -29,4 +31,5 @@ export interface AuthMePayload {
   updatedAt?: string | null
   roles?: string[]
   permissions?: string[]
+  menus?: MenuTreeResp[]
 }

@@ -13,13 +13,20 @@ export interface PostUpdateReq {
   remark?: string
 }
 
+export interface PostListQuery {
+  postCode?: string
+  postName?: string
+  status?: 'ENABLED' | 'DISABLED'
+  createdAtStart?: string
+  createdAtEnd?: string
+  page?: number
+  size?: number
+}
+
 export function usePostApi() {
   const { $api } = useNuxtApp()
 
   return {
-    getList: () =>
-      $api<PostResp[]>('/v1/system/posts', { context: { toast: false } }),
-
     create: (body: PostCreateReq) =>
       $api<string>('/v1/system/posts', { method: 'POST', body }),
 

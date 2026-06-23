@@ -78,6 +78,19 @@ export interface MenuResp {
   children?: MenuResp[]
 }
 
+// 当前用户路由菜单树（/v1/auth/me 的 menus 与 /menus/user/routes），仅含可导航的 DIRECTORY/MENU 节点
+export interface MenuTreeResp {
+  id: string
+  parentId: string | null
+  name: string
+  path: string | null
+  component: string | null
+  icon: string | null
+  visible: boolean
+  orderNum: number
+  children?: MenuTreeResp[]
+}
+
 // ─── 部门管理 ───────────────────────────────────────
 
 export type DeptStatus = 'ENABLED' | 'DISABLED'

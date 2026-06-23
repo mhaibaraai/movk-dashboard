@@ -3,7 +3,7 @@ import type { DataTableColumn } from '@movk/nuxt'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { z } from 'zod'
 import { Tree } from '@movk/core'
-import { UBadge, UIcon } from '#components'
+import { IconPicker, UBadge, UIcon } from '#components'
 import type { MenuCreateReq, MenuUpdateReq } from '~/api/system/menu'
 import {
   ENABLED_DISABLED_COLOR, ENABLED_DISABLED_LABEL,
@@ -11,7 +11,8 @@ import {
 } from '~/constants/system'
 
 const { tree, pending, handleCreate, handleUpdate, handleDelete, getDetail } = useMenuTree()
-const { afz } = useAutoForm()
+const { afz, controls } = useAutoForm({ iconPicker: { component: IconPicker } })
+const { hasPermission } = usePermission()
 
 const statusItems = [{ label: '启用', value: 'ENABLED' }, { label: '禁用', value: 'DISABLED' }]
 const typeItems = [
@@ -37,7 +38,8 @@ const schema = afz.object({
   }).default('MENU').meta({ label: '菜单类型' }),
   name: afz.string({ controlProps: { placeholder: '请输入菜单名称' } })
     .max(50, '最多 50 字').meta({ label: '菜单名称' }),
-  icon: afz.string({ controlProps: { placeholder: '如：i-lucide-home' } }).optional().meta({ label: '图标' }),
+  icon: afz.string({ type: 'iconPicker', controlProps: { placeholder: '选择图标', clear: true } })
+    .optional().meta({ label: '图标' }),
   orderNum: afz.number().default(0).meta({ label: '排序' }),
   path: afz.string({ controlProps: { placeholder: '如：/system/user' } }).optional()
     .meta({ label: '路由地址', if: ({ state }: { state: Partial<MenuCreateReq> }) => state.type !== 'BUTTON' }),
@@ -103,7 +105,7 @@ const columns: DataTableColumn<MenuResp>[] = [
     accessorKey: 'name',
     header: '菜单名称',
     cell: ({ row }) => h('div', { class: 'flex items-center gap-2' }, [
-      h(UIcon, { name: MENU_TYPE_ICON[row.original.type] ?? 'i-lucide-file', class: 'text-muted' }),
+      h(UIcon, { name: normalizeIconName(row.original.icon) || MENU_TYPE_ICON[row.original.type] || 'i-lucide-file', class: 'text-muted' }),
       h('span', row.original.name)
     ])
   },
@@ -144,18 +146,20 @@ const columns: DataTableColumn<MenuResp>[] = [
     actions: [
       {
         key: 'addChild',
+        visibility: hasPermission('system:menu:create'),
         buttonProps: { icon: 'i-lucide-plus', variant: 'ghost', size: 'xs' },
         onClick: ({ row }) => openCreate(row.id)
       },
       {
         key: 'edit',
+        visibility: hasPermission('system:menu:update'),
         buttonProps: { icon: 'i-lucide-pencil', variant: 'ghost', size: 'xs' },
         onClick: ({ row }) => openEdit(row.id)
       },
       {
         key: 'delete',
         buttonProps: { icon: 'i-lucide-trash-2', color: 'error', variant: 'ghost', size: 'xs' },
-        visibility: ({ row }) => !(row.children && row.children.length),
+        visibility: ({ row }) => hasPermission('system:menu:delete') && !(row.children && row.children.length),
         confirm: true,
         confirmProps: ({ row }) => ({
           type: 'warning',
@@ -180,9 +184,10 @@ const columns: DataTableColumn<MenuResp>[] = [
       :columns="columns"
       :data="tree"
       :loading="pending"
+      :pagination-ui="{}"
     >
       <template #toolbar-right>
-        <UButton icon="i-lucide-plus" @click="openCreate()">
+        <UButton v-permission="'system:menu:create'" icon="i-lucide-plus" @click="openCreate()">
           新增菜单
         </UButton>
       </template>
@@ -194,6 +199,7 @@ const columns: DataTableColumn<MenuResp>[] = [
           ref="formRef"
           :schema="schema"
           :state="state"
+          :controls="controls"
           :submit="false"
           @submit="onSubmit"
         />

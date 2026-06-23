@@ -15,20 +15,20 @@ const userCredentials = {
     email: 'admin@movk.com',
     password: 'Admin@2025#Secure'
   },
-  user: {
-    email: 'user@movk.com',
-    password: 'User@2025#Normal'
+  lisi: {
+    email: 'lisi@movk.com',
+    password: 'Movk@2025#Seed'
   },
-  test: {
-    email: 'test@movk.com',
-    password: 'Test@2025#Demo'
+  wangwu: {
+    email: 'wangwu@movk.com',
+    password: 'Movk@2025#Seed'
   }
 } as const
 
 type UserType = keyof typeof userCredentials
 
 const schema = afz.object({
-  user: afz.enum(['admin', 'user', 'test'] as const).meta({ label: '选择用户' }),
+  user: afz.enum(['admin', 'lisi', 'wangwu'] as const).meta({ label: '选择用户' }),
   email: afz.email({ type: 'withClear', error: '请输入邮箱地址' }).meta({ label: '邮箱' }),
   password: afz.string({ type: 'withPasswordToggle', error: '请输入密码' }).min(8, '密码至少需要 8 个字符').meta({ label: '密码' }),
   verify: afz.boolean({ type: 'slideVerify', error: '请完成滑动验证' }).meta({ label: '' })

@@ -3,7 +3,7 @@ import { useOperateLogApi } from '~/api/monitor/operate-log'
 export function useOperateLogList() {
   const operateLogApi = useOperateLogApi()
 
-  const query = ref<OperateLogListQuery>({ page: 0, size: 20 })
+  const query = ref<OperateLogListQuery>({ page: 0, size: 10 })
 
   const { data, pending, refresh } = useApiFetch<PageResp<OperateLogResp>>('/v1/monitor/operate-logs', {
     query,
