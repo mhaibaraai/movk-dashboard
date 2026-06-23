@@ -8,6 +8,7 @@ import { NOTICE_TYPE_COLOR, NOTICE_TYPE_LABEL, ENABLED_DISABLED_COLOR, ENABLED_D
 
 const { notices, pending, handleCreate, handleUpdate, handleDelete, handleDeleteBatch, getDetail } = useNoticeList()
 const { afz } = useAutoForm()
+const { hasPermission } = usePermission()
 const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle: 'medium', timeStyle: 'medium' } })
 
 const pagination = ref<PaginationState>({ pageIndex: 0, pageSize: 10 })
@@ -132,11 +133,13 @@ const columns: DataTableColumn<NoticeResp>[] = [
     actions: [
       {
         key: 'edit',
+        visibility: hasPermission('system:notice:update'),
         buttonProps: { icon: 'i-lucide-pencil', variant: 'ghost', size: 'xs' },
         onClick: ({ row }) => openEdit(row.id)
       },
       {
         key: 'delete',
+        visibility: hasPermission('system:notice:delete'),
         buttonProps: { icon: 'i-lucide-trash-2', color: 'error', variant: 'ghost', size: 'xs' },
         confirm: true,
         confirmProps: ({ row }) => ({
@@ -176,6 +179,7 @@ const columns: DataTableColumn<NoticeResp>[] = [
       <template #toolbar-right>
         <UButton
           v-if="rowSelectionKeys.length > 0"
+          v-permission="'system:notice:delete'"
           icon="i-lucide-trash-2"
           color="error"
           variant="soft"
@@ -183,7 +187,7 @@ const columns: DataTableColumn<NoticeResp>[] = [
         >
           批量删除（{{ rowSelectionKeys.length }}）
         </UButton>
-        <UButton icon="i-lucide-plus" @click="openCreate">
+        <UButton v-permission="'system:notice:create'" icon="i-lucide-plus" @click="openCreate">
           新增公告
         </UButton>
       </template>

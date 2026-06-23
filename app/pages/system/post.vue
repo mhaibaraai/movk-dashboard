@@ -11,6 +11,7 @@ const {
   handleCreate, handleUpdate, handleDelete, getDetail, handlePagination, handleSearch
 } = usePostList()
 const { afz } = useAutoForm()
+const { hasPermission } = usePermission()
 const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle: 'medium', timeStyle: 'medium' } })
 
 const pagination = useTablePagination(query.value.size ?? 20, handlePagination)
@@ -110,11 +111,13 @@ const columns: DataTableColumn<PostResp>[] = [
     actions: [
       {
         key: 'edit',
+        visibility: hasPermission('system:post:update'),
         buttonProps: { icon: 'i-lucide-pencil', variant: 'ghost', size: 'xs' },
         onClick: ({ row }) => openEdit(row.id)
       },
       {
         key: 'delete',
+        visibility: hasPermission('system:post:delete'),
         buttonProps: { icon: 'i-lucide-trash-2', color: 'error', variant: 'ghost', size: 'xs' },
         confirm: true,
         confirmProps: ({ row }) => ({
@@ -152,7 +155,7 @@ const columns: DataTableColumn<PostResp>[] = [
       :pagination-options="{ manualPagination: true, rowCount: total }"
     >
       <template #toolbar-right>
-        <UButton icon="i-lucide-plus" @click="openCreate">
+        <UButton v-permission="'system:post:create'" icon="i-lucide-plus" @click="openCreate">
           新增岗位
         </UButton>
       </template>

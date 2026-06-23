@@ -14,6 +14,7 @@ const {
 } = useRoleList()
 
 const { afz } = useAutoForm()
+const { hasPermission } = usePermission()
 const { deptOptions } = useDeptOptions()
 const { tree: menuTree } = useMenuTree()
 const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle: 'medium', timeStyle: 'medium' } })
@@ -204,18 +205,20 @@ const columns: DataTableColumn<RoleResp>[] = [
     actions: [
       {
         key: 'edit',
+        visibility: hasPermission('system:role:update'),
         buttonProps: { icon: 'i-lucide-pencil', variant: 'ghost', size: 'xs' },
         onClick: ({ row }) => openEdit(row.id)
       },
       {
         key: 'assign',
+        visibility: hasPermission('system:role:update'),
         buttonProps: { icon: 'i-lucide-list-tree', variant: 'ghost', size: 'xs' },
         onClick: ({ row }) => openAssign(row.id)
       },
       {
         key: 'delete',
         buttonProps: { icon: 'i-lucide-trash-2', color: 'error', variant: 'ghost', size: 'xs' },
-        visibility: ({ row }) => row.roleType !== 'BUILT_IN',
+        visibility: ({ row }) => hasPermission('system:role:delete') && row.roleType !== 'BUILT_IN',
         confirm: true,
         confirmProps: ({ row }) => ({
           type: 'warning',
@@ -255,6 +258,7 @@ const columns: DataTableColumn<RoleResp>[] = [
       <template #toolbar-right>
         <UButton
           v-if="rowSelectionKeys.length > 0"
+          v-permission="'system:role:delete'"
           color="error"
           variant="soft"
           icon="i-lucide-trash-2"
@@ -262,7 +266,7 @@ const columns: DataTableColumn<RoleResp>[] = [
         >
           批量删除（{{ rowSelectionKeys.length }}）
         </UButton>
-        <UButton icon="i-lucide-plus" @click="openCreate">
+        <UButton v-permission="'system:role:create'" icon="i-lucide-plus" @click="openCreate">
           新增角色
         </UButton>
       </template>

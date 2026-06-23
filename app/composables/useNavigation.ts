@@ -1,122 +1,57 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
+import { Tree } from '@movk/core'
+
+// 底部固定入口（非业务菜单，不随权限变化）
+const bottomGroup: NavigationMenuItem[] = [
+  {
+    label: '反馈',
+    icon: 'i-lucide-message-circle',
+    to: 'https://github.com/mhaibaraai/movk-nuxt-dashboard',
+    target: '_blank'
+  },
+  {
+    label: '帮助与支持',
+    icon: 'i-lucide-info',
+    to: 'https://github.com/mhaibaraai/movk-nuxt-dashboard',
+    target: '_blank'
+  }
+]
 
 export function useNavigation() {
-  const navigation: NavigationMenuItem[][] = [
-    [
-      {
-        label: '首页',
-        icon: 'i-lucide-house',
-        to: '/'
-      },
-      {
-        label: '系统管理',
-        icon: 'i-lucide-cog',
-        to: '/system',
-        type: 'trigger',
-        defaultOpen: true,
-        children: [
-          {
-            label: '用户管理',
-            icon: 'i-lucide-users',
-            to: '/system/user'
-          },
-          {
-            label: '角色管理',
-            icon: 'i-lucide-shield-check',
-            to: '/system/role'
-          },
-          {
-            label: '岗位管理',
-            icon: 'i-lucide-briefcase',
-            to: '/system/post'
-          },
-          {
-            label: '部门管理',
-            icon: 'i-lucide-building-2',
-            to: '/system/dept'
-          },
-          {
-            label: '菜单管理',
-            icon: 'i-lucide-layout-list',
-            to: '/system/menu'
-          },
-          {
-            label: '字典管理',
-            icon: 'i-lucide-book-a',
-            to: '/system/dict'
-          },
-          {
-            label: '系统配置',
-            icon: 'i-lucide-settings-2',
-            to: '/system/config'
-          },
-          {
-            label: '通知公告',
-            icon: 'i-lucide-megaphone',
-            to: '/system/notice'
-          },
-          {
-            label: '文件管理',
-            icon: 'i-lucide-folder',
-            to: '/system/file'
-          }
-        ]
-      },
-      {
-        label: '系统监控',
-        icon: 'i-lucide-activity',
-        to: '/monitor',
-        type: 'trigger',
-        defaultOpen: true,
-        children: [
-          {
-            label: '操作日志',
-            icon: 'i-lucide-scroll-text',
-            to: '/monitor/operate-log'
-          },
-          {
-            label: '登录日志',
-            icon: 'i-lucide-log-in',
-            to: '/monitor/login-log'
-          },
-          {
-            label: '在线用户',
-            icon: 'i-lucide-users-round',
-            to: '/monitor/online-user'
-          }
-        ]
-      }
-    ],
-    [
-      {
-        label: '反馈',
-        icon: 'i-lucide-message-circle',
-        to: 'https://github.com/mhaibaraai/movk-nuxt-dashboard',
-        target: '_blank'
-      },
-      {
-        label: '帮助与支持',
-        icon: 'i-lucide-info',
-        to: 'https://github.com/mhaibaraai/movk-nuxt-dashboard',
-        target: '_blank'
-      }
-    ]
-  ]
+  const { currentUser } = useCurrentUser()
 
-  const groups = navigation.map(group =>
-    group.map(item =>
-      item.children
-        ? { ...item, children: item.children.map(({ icon: _icon, ...rest }) => rest) }
-        : item
+  // 主导航由当前用户的路由菜单树（/v1/auth/me 的 menus）动态生成，层级随后端配置
+  const mainNavigation = computed<NavigationMenuItem[]>(() => {
+    const menus = (currentUser.value?.menus ?? []) as MenuTreeResp[]
+    const visibleMenus = Tree.filter(menus, ({ node }) => node.visible !== false)
+    return Tree.transform<MenuTreeResp, NavigationMenuItem>(visibleMenus, ({ node, depth }) => {
+      const hasChildren = Array.isArray(node.children) && node.children.length > 0
+      return {
+        label: node.name,
+        icon: node.icon ?? undefined,
+        to: node.path ?? undefined,
+        ...(hasChildren ? { type: 'trigger' as const, defaultOpen: depth === 0 } : {})
+      }
+    }) as NavigationMenuItem[]
+  })
+
+  const navigation = computed<NavigationMenuItem[][]>(() => [mainNavigation.value, bottomGroup])
+
+  // 侧边栏：去掉子项图标，保持与原视觉一致
+  const groups = computed<NavigationMenuItem[][]>(() =>
+    navigation.value.map(group =>
+      group.map(item =>
+        item.children
+          ? { ...item, children: item.children.map(({ icon: _icon, ...rest }) => rest) }
+          : item
+      )
     )
   )
 
-  function getLinks(id: string): NavigationMenuItem[] {
-    return navigation.flat().find(item => item.to === `/${id}`)?.children ?? []
+  // 按顶级路径取其子项，供 section 父页面（system / monitor 等）渲染二级导航
+  function getSectionLinks(basePath: string): NavigationMenuItem[] {
+    return mainNavigation.value.find(item => item.to === basePath)?.children ?? []
   }
 
-  const systemLinks = getLinks('system')
-  const monitorLinks = getLinks('monitor')
-
-  return { navigation, groups, systemLinks, monitorLinks }
+  return { navigation, groups, getSectionLinks }
 }

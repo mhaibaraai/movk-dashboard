@@ -20,9 +20,9 @@
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.114",
-    "@iconify-json/simple-icons": "^1.2.86",
-    "@movk/core": "^1.3.0",
-    "@movk/nuxt": "https://pkg.pr.new/@movk/nuxt@bcf89fc",
+    "@iconify-json/simple-icons": "^1.2.87",
+    "@movk/core": "^1.3.1",
+    "@movk/nuxt": "https://pkg.pr.new/@movk/nuxt@ddc128a",
     "@nuxt/ui": "^4.9.0",
     "@vueuse/nuxt": "^14.3.0",
     "cookie-es": "^3.1.1",
@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.16.0",
-    "@types/node": "^25.9.4",
+    "@types/node": "^26.0.0",
     "eslint": "^10.5.0",
     "typescript": "^6.0.3",
     "vue-tsc": "^3.3.5"

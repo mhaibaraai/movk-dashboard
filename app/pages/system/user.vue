@@ -2,7 +2,6 @@
 import type { DataTableColumn } from '@movk/nuxt'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { z } from 'zod'
-import { Tree } from '@movk/core'
 import { UBadge } from '#components'
 import type { UserCreateReq, UserUpdateReq } from '~/api/system/user'
 import { USER_STATUS_COLOR, USER_STATUS_LABEL } from '~/constants/system'
@@ -14,6 +13,7 @@ const {
 } = useUserList()
 
 const { deptOptions, deptTreeItems, roleOptions, postOptions } = useUserFormOptions()
+const { hasPermission } = usePermission()
 const { afz } = useAutoForm()
 const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle: 'medium', timeStyle: 'medium' } })
 
@@ -34,11 +34,6 @@ const rowSelectionKeys = ref<string[]>([])
 // 左侧部门树筛选
 const selectedDept = ref()
 watch(selectedDept, dept => handleSearch({ deptId: dept?.value }))
-
-const expandedDeptKeys = ref<string[]>([])
-onMounted(() => {
-  expandedDeptKeys.value = Tree.toList(deptTreeItems.value).map(n => n.value)
-})
 
 // 顶部搜索
 const searchSchema = afz.object({
@@ -187,16 +182,19 @@ const columns: DataTableColumn<UserResp>[] = [
     actions: [
       {
         key: 'edit',
+        visibility: hasPermission('system:user:update'),
         buttonProps: { icon: 'i-lucide-pencil', variant: 'ghost', size: 'xs' },
         onClick: ({ row }) => openEdit(row.id)
       },
       {
         key: 'reset',
+        visibility: hasPermission('system:user:update'),
         buttonProps: { icon: 'i-lucide-key-round', variant: 'ghost', size: 'xs' },
         onClick: ({ row }) => openReset(row.id)
       },
       {
         key: 'delete',
+        visibility: hasPermission('system:user:delete'),
         buttonProps: { icon: 'i-lucide-trash-2', color: 'error', variant: 'ghost', size: 'xs' },
         confirm: true,
         confirmProps: ({ row }) => ({
@@ -223,14 +221,7 @@ async function onBatchDelete() {
   <div class="flex gap-4 min-h-0 flex-1">
     <aside class="w-60 shrink-0">
       <div class="flex h-full flex-col gap-2 rounded-md border border-default p-2">
-        <UTree
-          v-model="selectedDept"
-          v-model:expanded="expandedDeptKeys"
-          :items="deptTreeItems"
-          :get-key="item => item.value"
-          class="flex-1 overflow-auto"
-          @toggle="(e) => e.preventDefault()"
-        />
+        <MTree v-model="selectedDept" :items="deptTreeItems" default-expanded class="flex-1 overflow-auto" />
       </div>
     </aside>
 
@@ -256,6 +247,7 @@ async function onBatchDelete() {
         <template #toolbar-right>
           <UButton
             v-if="rowSelectionKeys.length > 0"
+            v-permission="'system:user:delete'"
             icon="i-lucide-trash-2"
             color="error"
             variant="soft"
@@ -263,7 +255,7 @@ async function onBatchDelete() {
           >
             批量删除（{{ rowSelectionKeys.length }}）
           </UButton>
-          <UButton icon="i-lucide-plus" @click="openCreate">
+          <UButton v-permission="'system:user:create'" icon="i-lucide-plus" @click="openCreate">
             新增用户
           </UButton>
         </template>
@@ -272,13 +264,7 @@ async function onBatchDelete() {
 
     <USlideover v-model:open="isFormOpen" :title="isEditing ? '编辑用户' : '新增用户'" class="w-130">
       <template #body>
-        <MAutoForm
-          ref="formRef"
-          :schema="formSchema"
-          :state="formState"
-          :submit="false"
-          @submit="onFormSubmit"
-        />
+        <MAutoForm ref="formRef" :schema="formSchema" :state="formState" :submit="false" @submit="onFormSubmit" />
       </template>
       <template #footer>
         <div class="flex w-full justify-end gap-2">

@@ -189,32 +189,36 @@ const menuTree = [
         { name: '新增', code: 'system:menu:create' }, { name: '编辑', code: 'system:menu:update' }, { name: '删除', code: 'system:menu:delete' }
       ]),
       menu('部门管理', 'i-lucide-network', '/system/dept', 'system/dept', 'system:dept:list', [
-        { name: '新增', code: 'system:dept:create' }, { name: '删除', code: 'system:dept:delete' }
+        { name: '新增', code: 'system:dept:create' }, { name: '编辑', code: 'system:dept:update' }, { name: '删除', code: 'system:dept:delete' }
       ]),
       menu('岗位管理', 'i-lucide-briefcase', '/system/post', 'system/post', 'system:post:list', [
-        { name: '新增', code: 'system:post:create' }, { name: '删除', code: 'system:post:delete' }
+        { name: '新增', code: 'system:post:create' }, { name: '编辑', code: 'system:post:update' }, { name: '删除', code: 'system:post:delete' }
       ]),
       menu('字典管理', 'i-lucide-book', '/system/dict', 'system/dict', 'system:dict:list', [
-        { name: '新增', code: 'system:dict:create' }, { name: '删除', code: 'system:dict:delete' }
+        { name: '新增', code: 'system:dict:create' }, { name: '编辑', code: 'system:dict:update' }, { name: '删除', code: 'system:dict:delete' }
       ]),
       menu('系统配置', 'i-lucide-sliders', '/system/config', 'system/config', 'system:config:list', [
-        { name: '新增', code: 'system:config:create' }, { name: '删除', code: 'system:config:delete' }
+        { name: '新增', code: 'system:config:create' }, { name: '编辑', code: 'system:config:update' }, { name: '删除', code: 'system:config:delete' }
       ]),
       menu('通知公告', 'i-lucide-bell', '/system/notice', 'system/notice', 'system:notice:list', [
-        { name: '新增', code: 'system:notice:create' }, { name: '删除', code: 'system:notice:delete' }
+        { name: '新增', code: 'system:notice:create' }, { name: '编辑', code: 'system:notice:update' }, { name: '删除', code: 'system:notice:delete' }
       ]),
       menu('文件管理', 'i-lucide-folder', '/system/file', 'system/file', 'system:file:list', [
-        { name: '上传', code: 'system:file:upload' }, { name: '删除', code: 'system:file:delete' }
+        { name: '上传', code: 'system:file:create' }, { name: '删除', code: 'system:file:delete' }
       ])
     ]
   },
   {
     type: 'DIRECTORY', name: '系统监控', icon: 'i-lucide-activity', path: '/monitor', orderNum: 2,
     children: [
-      menu('操作日志', 'i-lucide-file-text', '/monitor/operate-log', 'monitor/operate-log', 'monitor:operlog:list', []),
-      menu('登录日志', 'i-lucide-log-in', '/monitor/login-log', 'monitor/login-log', 'monitor:loginlog:list', []),
-      menu('在线用户', 'i-lucide-user-check', '/monitor/online-user', 'monitor/online-user', 'monitor:online:list', [
-        { name: '强制下线', code: 'monitor:online:forceLogout' }
+      menu('操作日志', 'i-lucide-file-text', '/monitor/operate-log', 'monitor/operate-log', 'monitor:operateLog:list', [
+        { name: '清理', code: 'monitor:operateLog:delete' }
+      ]),
+      menu('登录日志', 'i-lucide-log-in', '/monitor/login-log', 'monitor/login-log', 'monitor:loginLog:list', [
+        { name: '清理', code: 'monitor:loginLog:delete' }
+      ]),
+      menu('在线用户', 'i-lucide-user-check', '/monitor/online', 'monitor/online', 'monitor:online:list', [
+        { name: '强制下线', code: 'monitor:online:kick' }
       ])
     ]
   }

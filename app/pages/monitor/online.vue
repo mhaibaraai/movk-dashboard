@@ -8,6 +8,7 @@ const {
   handleForceLogout, handleBatchForceLogout, handlePagination, handleSearch
 } = useOnlineUserList()
 const { afz } = useAutoForm()
+const { hasPermission } = usePermission()
 const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle: 'medium', timeStyle: 'medium' } })
 
 const pagination = useTablePagination(query.value.size ?? 20, handlePagination)
@@ -56,6 +57,7 @@ const columns: DataTableColumn<OnlineUserResp>[] = [
     actions: [
       {
         key: 'logout',
+        visibility: hasPermission('monitor:online:kick'),
         buttonProps: { icon: 'i-lucide-log-out', color: 'error', variant: 'ghost', size: 'xs' },
         confirm: true,
         confirmProps: ({ row }) => ({
@@ -96,6 +98,7 @@ const columns: DataTableColumn<OnlineUserResp>[] = [
       <template #toolbar-right>
         <UButton
           v-if="rowSelectionKeys.length > 0"
+          v-permission="'monitor:online:kick'"
           icon="i-lucide-log-out"
           color="error"
           variant="soft"

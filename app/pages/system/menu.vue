@@ -12,6 +12,7 @@ import {
 
 const { tree, pending, handleCreate, handleUpdate, handleDelete, getDetail } = useMenuTree()
 const { afz, controls } = useAutoForm({ iconPicker: { component: IconPicker } })
+const { hasPermission } = usePermission()
 
 const statusItems = [{ label: '启用', value: 'ENABLED' }, { label: '禁用', value: 'DISABLED' }]
 const typeItems = [
@@ -145,18 +146,20 @@ const columns: DataTableColumn<MenuResp>[] = [
     actions: [
       {
         key: 'addChild',
+        visibility: hasPermission('system:menu:create'),
         buttonProps: { icon: 'i-lucide-plus', variant: 'ghost', size: 'xs' },
         onClick: ({ row }) => openCreate(row.id)
       },
       {
         key: 'edit',
+        visibility: hasPermission('system:menu:update'),
         buttonProps: { icon: 'i-lucide-pencil', variant: 'ghost', size: 'xs' },
         onClick: ({ row }) => openEdit(row.id)
       },
       {
         key: 'delete',
         buttonProps: { icon: 'i-lucide-trash-2', color: 'error', variant: 'ghost', size: 'xs' },
-        visibility: ({ row }) => !(row.children && row.children.length),
+        visibility: ({ row }) => hasPermission('system:menu:delete') && !(row.children && row.children.length),
         confirm: true,
         confirmProps: ({ row }) => ({
           type: 'warning',
@@ -184,7 +187,7 @@ const columns: DataTableColumn<MenuResp>[] = [
       :pagination-ui="{}"
     >
       <template #toolbar-right>
-        <UButton icon="i-lucide-plus" @click="openCreate()">
+        <UButton v-permission="'system:menu:create'" icon="i-lucide-plus" @click="openCreate()">
           新增菜单
         </UButton>
       </template>

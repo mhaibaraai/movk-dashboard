@@ -11,6 +11,7 @@ const {
 } = useFileList()
 const fileApi = useFileApi()
 const { afz } = useAutoForm()
+const { hasPermission } = usePermission()
 const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle: 'medium', timeStyle: 'medium' } })
 const toast = useToast()
 
@@ -118,6 +119,7 @@ const columns: DataTableColumn<FileResp>[] = [
       },
       {
         key: 'delete',
+        visibility: hasPermission('system:file:delete'),
         buttonProps: { icon: 'i-lucide-trash-2', color: 'error', variant: 'ghost', size: 'xs' },
         confirm: true,
         confirmProps: ({ row }) => ({
@@ -158,6 +160,7 @@ const columns: DataTableColumn<FileResp>[] = [
       <template #toolbar-right>
         <UButton
           v-if="rowSelectionKeys.length > 0"
+          v-permission="'system:file:delete'"
           icon="i-lucide-trash-2"
           color="error"
           variant="soft"
@@ -165,7 +168,7 @@ const columns: DataTableColumn<FileResp>[] = [
         >
           批量删除（{{ rowSelectionKeys.length }}）
         </UButton>
-        <UButton icon="i-lucide-upload" @click="openUpload">
+        <UButton v-permission="'system:file:create'" icon="i-lucide-upload" @click="openUpload">
           上传文件
         </UButton>
       </template>
