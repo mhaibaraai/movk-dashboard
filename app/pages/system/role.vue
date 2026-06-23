@@ -5,7 +5,7 @@ import type { z } from 'zod'
 import { Tree } from '@movk/core'
 import { UBadge } from '#components'
 import type { RoleCreateReq, RoleUpdateReq } from '~/api/system/role'
-import { ENABLED_DISABLED_COLOR, ENABLED_DISABLED_LABEL, MENU_TYPE_COLOR, MENU_TYPE_ICON, MENU_TYPE_LABEL } from '~/constants/system'
+import { ENABLED_DISABLED_COLOR, ENABLED_DISABLED_LABEL, MENU_TYPE_ICON } from '~/constants/system'
 
 const {
   roles, total, pending, query,
@@ -119,47 +119,35 @@ async function onDeleteBatch() {
   rowSelectionKeys.value = []
 }
 
-// 分配菜单（UTree multiple 的 model 为节点对象数组，需与 menuIds 互转）
-interface MenuTreeNode { label: string, value: string, type: MenuType, icon: string }
+// 分配菜单（MTree checkable 的 model 为节点对象数组，需与 menuIds 互转）
+interface MenuTreeItem {
+  label: string
+  value: string
+  type: MenuType
+  trailingIcon: string
+  disabled: boolean
+  icon: string
+}
 const assignOpen = ref(false)
 const assignRoleId = ref<string | null>(null)
-const assignSelected = ref<MenuTreeNode[]>([])
-const expandedKeys = ref<string[]>([])
+const assignSelected = ref<MenuTreeItem[]>([])
 const menuTreeItems = computed(() =>
-  Tree.transform(menuTree.value, ({ node }) => ({
+  Tree.transform<MenuResp, MenuTreeItem>(menuTree.value, ({ node }) => ({
     label: node.name,
     value: node.id,
     type: node.type,
+    trailingIcon: 'i-lucide-chevron-down',
+    disabled: true,
     icon: node.icon || MENU_TYPE_ICON[node.type] || 'i-lucide-file'
   }))
 )
 const menuTreeFlat = computed(() => Tree.toList(menuTreeItems.value))
-
-const allExpanded = computed(() =>
-  menuTreeFlat.value.length > 0 && expandedKeys.value.length >= menuTreeFlat.value.length
-)
-function toggleExpandAll() {
-  expandedKeys.value = allExpanded.value ? [] : menuTreeFlat.value.map(n => n.value)
-}
-function toggleNode(value: string) {
-  expandedKeys.value = expandedKeys.value.includes(value)
-    ? expandedKeys.value.filter(k => k !== value)
-    : [...expandedKeys.value, value]
-}
-
-const allSelected = computed(() =>
-  menuTreeFlat.value.length > 0 && assignSelected.value.length >= menuTreeFlat.value.length
-)
-function toggleSelectAll() {
-  assignSelected.value = allSelected.value ? [] : [...menuTreeFlat.value]
-}
 
 async function openAssign(id: string) {
   assignRoleId.value = id
   const detail = await getDetail(id)
   const ids = detail.menuIds ?? []
   assignSelected.value = menuTreeFlat.value.filter(n => ids.includes(n.value))
-  expandedKeys.value = []
   assignOpen.value = true
 }
 
@@ -296,75 +284,17 @@ const columns: DataTableColumn<RoleResp>[] = [
 
     <USlideover v-model:open="assignOpen" title="分配菜单" class="w-120">
       <template #body>
-        <div class="flex flex-col gap-2 min-h-0 h-full">
-          <div class="flex items-center justify-between">
-            <UButton
-              variant="ghost"
-              color="neutral"
-              size="xs"
-              :icon="allExpanded ? 'i-lucide-chevrons-down-up' : 'i-lucide-chevrons-up-down'"
-              @click="toggleExpandAll"
-            >
-              {{ allExpanded ? '折叠全部' : '展开全部' }}
-            </UButton>
-            <UButton
-              variant="ghost"
-              color="neutral"
-              size="xs"
-              :icon="allSelected ? 'i-lucide-square' : 'i-lucide-square-check'"
-              @click="toggleSelectAll"
-            >
-              {{ allSelected ? '清空' : '全选' }}
-            </UButton>
-          </div>
-
-          <UTree
-            v-model="assignSelected"
-            v-model:expanded="expandedKeys"
-            :items="menuTreeItems"
-            :get-key="(item) => item.value"
-            :as="{ link: 'div' }"
-            :ui="{ link: 'before:bg-transparent' }"
-            multiple
-            propagate-select
-            class="flex-1 overflow-auto"
-            @toggle="(e) => e.preventDefault()"
-          >
-            <template #item-leading="{ item, selected, indeterminate }">
-              <UCheckbox
-                :model-value="selected"
-                :indeterminate="indeterminate"
-                tabindex="-1"
-                class="pointer-events-none"
-              />
-              <UIcon :name="item.icon" class="size-4 shrink-0 text-muted" />
-            </template>
-            <template #item-label="{ item }">
-              <span class="truncate">{{ item.label }}</span>
-              <UBadge
-                v-if="item.type === 'BUTTON'"
-                :color="MENU_TYPE_COLOR.BUTTON"
-                variant="subtle"
-                size="sm"
-                class="ml-2"
-              >
-                {{ MENU_TYPE_LABEL.BUTTON }}
-              </UBadge>
-            </template>
-            <template #item-trailing="{ item, expanded }">
-              <UButton
-                v-if="item.children?.length"
-                icon="i-lucide-chevron-down"
-                color="neutral"
-                variant="ghost"
-                size="xs"
-                class="transition-transform"
-                :class="expanded ? '' : '-rotate-90'"
-                @click.stop="toggleNode(item.value)"
-              />
-            </template>
-          </UTree>
-        </div>
+        <MTree
+          v-model="assignSelected"
+          :items="menuTreeItems"
+          searchable
+          checkable
+          :default-expanded="1"
+          expanded-icon="i-lucide-book-open"
+          collapsed-icon="i-lucide-book"
+          color="warning"
+          class="flex-1 overflow-auto"
+        />
       </template>
       <template #footer>
         <div class="flex w-full justify-end gap-2">
