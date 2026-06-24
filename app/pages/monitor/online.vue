@@ -53,7 +53,7 @@ const columns: DataTableColumn<OnlineUserResp>[] = [
   {
     type: 'actions',
     fixed: 'right',
-    size: 100,
+    size: 60,
     actions: [
       {
         key: 'logout',

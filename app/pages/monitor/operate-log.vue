@@ -94,7 +94,7 @@ const columns: DataTableColumn<OperateLogResp>[] = [
   {
     type: 'actions',
     fixed: 'right',
-    size: 80,
+    size: 60,
     actions: [
       {
         key: 'detail',

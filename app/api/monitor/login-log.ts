@@ -3,7 +3,7 @@ export function useLoginLogApi() {
 
   return {
     getById: (id: number) =>
-      $api<LoginLogResp>(`/v1/monitor/login-logs/${id}`, { context: { toast: false } }),
+      $api<LoginLogResp>(`/v1/monitor/login-logs/${id}`),
     clean: (days: number) =>
       $api<number>('/v1/monitor/login-logs', { method: 'DELETE', query: { days } })
   }
