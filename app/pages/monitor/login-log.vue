@@ -3,7 +3,7 @@ import type { DataTableColumn } from '@movk/nuxt'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { z } from 'zod'
 import { UBadge } from '#components'
-import { LOG_STATUS_COLOR, LOG_STATUS_LABEL, LOG_STATUS_QUERY, LOGIN_TYPE_COLOR, LOGIN_TYPE_LABEL } from '~/constants/monitor'
+import { LOG_STATUS_QUERY, DICT_TYPE } from '~/constants/dict'
 
 const { logs, total, pending, query, handleClean, handlePagination, handleSearch } = useLoginLogList()
 const { afz } = useAutoForm()
@@ -11,14 +11,15 @@ const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle
 
 const pagination = useTablePagination(query.value.size ?? 20, handlePagination)
 
-const statusItems = [{ label: '成功', value: 'SUCCESS' }, { label: '失败', value: 'FAILURE' }]
+const statusDict = useDict(DICT_TYPE.businessStatus)
+const loginTypeDict = useDict(DICT_TYPE.loginType)
 
 const searchSchema = afz.object({
   username: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-user', label: '用户名' } }).optional(),
   loginIp: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-network', label: '登录 IP' } }).optional(),
-  status: afz.enum(['SUCCESS', 'FAILURE'], {
+  status: afz.enum([], {
     type: 'selectMenu',
-    controlProps: { icon: 'i-lucide-toggle-left', placeholder: '状态', clear: true, valueKey: 'value', items: statusItems }
+    controlProps: () => ({ icon: 'i-lucide-toggle-left', placeholder: '状态', clear: true, valueKey: 'value', items: statusDict.options.value })
   }).optional(),
   startTime: afz.calendarDate({ controlProps: { labelFormat: 'iso', placeholder: '开始日期' } })
     .transform(d => formatter.toISO(d)).optional(),
@@ -63,8 +64,8 @@ const columns: DataTableColumn<LoginLogResp>[] = [
     header: '登录类型',
     cell: ({ row }) => h(
       UBadge,
-      { color: LOGIN_TYPE_COLOR[row.original.loginType] ?? 'neutral', variant: 'subtle' },
-      () => LOGIN_TYPE_LABEL[row.original.loginType] ?? row.original.loginType
+      { color: loginTypeDict.getColor(row.original.loginType), variant: 'subtle' },
+      () => loginTypeDict.getLabel(row.original.loginType)
     )
   },
   { accessorKey: 'loginIp', header: '登录 IP' },
@@ -76,8 +77,8 @@ const columns: DataTableColumn<LoginLogResp>[] = [
     header: '状态',
     cell: ({ row }) => h(
       UBadge,
-      { color: LOG_STATUS_COLOR[row.original.status] ?? 'neutral', variant: 'subtle' },
-      () => LOG_STATUS_LABEL[row.original.status] ?? row.original.status
+      { color: statusDict.getColor(row.original.status), variant: 'subtle' },
+      () => statusDict.getLabel(row.original.status)
     )
   },
   { accessorKey: 'message', header: '消息', tooltip: true, size: 160 },

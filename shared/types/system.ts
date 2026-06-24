@@ -1,7 +1,6 @@
 // ─── 用户管理 ───────────────────────────────────────
 
-export type UserStatus = 'ACTIVE' | 'DISABLED' | 'LOCKED' | 'DELETED'
-export type UserGender = 'UNKNOWN' | 'MALE' | 'FEMALE'
+import type { SemanticColor } from '@movk/nuxt'
 
 export interface UserResp {
   id: string
@@ -9,9 +8,9 @@ export interface UserResp {
   nickname: string | null
   email: string | null
   phone: string | null
-  gender: UserGender
+  gender: string
   avatar: string | null
-  status: UserStatus
+  status: string
   deptId: string | null
   deptName: string | null
   loginIp: string | null
@@ -32,20 +31,16 @@ export interface UserDetailResp extends UserResp {
 
 // ─── 角色管理 ───────────────────────────────────────
 
-export type RoleStatus = 'ENABLED' | 'DISABLED'
-export type RoleType = 'BUILT_IN' | 'CUSTOM'
-export type DataScope = 'ALL' | 'DEPT' | 'DEPT_AND_CHILD' | 'SELF' | 'CUSTOM'
-
 export interface RoleResp {
   id: string
   code: string
   name: string
   roleSort: number
-  dataScope: DataScope
+  dataScope: string
   dataScopeDeptIds: string[]
   dataScopeDeptNames: string[]
-  status: RoleStatus
-  roleType: RoleType
+  status: string
+  roleType: string
   menuIds: string[]
   remark: string | null
   createdAt: string
@@ -54,13 +49,10 @@ export interface RoleResp {
 
 // ─── 菜单管理 ───────────────────────────────────────
 
-export type MenuType = 'DIRECTORY' | 'MENU' | 'BUTTON'
-export type MenuStatus = 'ENABLED' | 'DISABLED'
-
 export interface MenuResp {
   id: string
   parentId: string | null
-  type: MenuType
+  type: string
   name: string
   orderNum: number
   path: string | null
@@ -70,7 +62,7 @@ export interface MenuResp {
   isCache: boolean
   permissionCode: string | null
   visible: boolean
-  status: MenuStatus
+  status: string
   icon: string | null
   remark: string | null
   createdAt: string
@@ -93,8 +85,6 @@ export interface MenuTreeResp {
 
 // ─── 部门管理 ───────────────────────────────────────
 
-export type DeptStatus = 'ENABLED' | 'DISABLED'
-
 export interface DeptResp {
   id: string
   parentId: string | null
@@ -105,7 +95,7 @@ export interface DeptResp {
   leaderUserName: string | null
   phone: string | null
   email: string | null
-  status: DeptStatus
+  status: string
   createdAt: string
   updatedAt: string
   children?: DeptResp[]
@@ -113,14 +103,12 @@ export interface DeptResp {
 
 // ─── 岗位管理 ───────────────────────────────────────
 
-export type PostStatus = 'ENABLED' | 'DISABLED'
-
 export interface PostResp {
   id: string
   postCode: string
   postName: string
   orderNum: number
-  status: PostStatus
+  status: string
   remark: string | null
   createdAt: string
   updatedAt: string
@@ -128,13 +116,11 @@ export interface PostResp {
 
 // ─── 字典管理 ───────────────────────────────────────
 
-export type DictStatus = 'ENABLED' | 'DISABLED'
-
 export interface DictTypeResp {
   id: string
   dictName: string
   dictType: string
-  status: DictStatus
+  status: string
   remark: string | null
   createdAt: string
   updatedAt: string
@@ -147,9 +133,9 @@ export interface DictDataResp {
   dictValue: string
   dictSort: number
   cssClass: string | null
-  listClass: string | null
+  listClass: SemanticColor | null
   isDefault: boolean
-  status: DictStatus
+  status: string
   remark: string | null
   createdAt: string
   updatedAt: string
@@ -176,14 +162,12 @@ export interface FileResp {
 
 // ─── 系统配置 ───────────────────────────────────────
 
-export type ConfigType = 'BUILTIN' | 'CUSTOM'
-
 export interface ConfigResp {
   id: string
   configName: string
   configKey: string
   configValue: string
-  configType: ConfigType
+  configType: string
   remark: string | null
   createdAt: string
   updatedAt: string
@@ -191,15 +175,12 @@ export interface ConfigResp {
 
 // ─── 通知公告 ───────────────────────────────────────
 
-export type NoticeType = 'NOTICE' | 'ANNOUNCEMENT'
-export type NoticeStatus = 'ENABLED' | 'DISABLED'
-
 export interface NoticeResp {
   id: string
   noticeTitle: string
-  noticeType: NoticeType
+  noticeType: string
   noticeContent: string | null
-  status: NoticeStatus
+  status: string
   creator: string | null
   createdAt: string
   updatedAt: string

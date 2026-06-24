@@ -5,22 +5,15 @@ import type { z } from 'zod'
 import { Tree } from '@movk/core'
 import { IconPicker, UBadge, UIcon } from '#components'
 import type { MenuCreateReq, MenuUpdateReq } from '~/api/system/menu'
-import {
-  ENABLED_DISABLED_COLOR, ENABLED_DISABLED_LABEL,
-  MENU_TYPE_COLOR, MENU_TYPE_ICON, MENU_TYPE_LABEL
-} from '~/constants/system'
+import { MENU_TYPE_ICON, DICT_TYPE } from '~/constants/dict'
 
 const { tree, pending, handleCreate, handleUpdate, handleDelete, getDetail } = useMenuTree()
 const { afz, controls } = useAutoForm({ iconPicker: { component: IconPicker } })
 const { hasPermission } = usePermission()
 const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle: 'medium', timeStyle: 'medium' } })
 
-const statusItems = [{ label: '启用', value: 'ENABLED' }, { label: '禁用', value: 'DISABLED' }]
-const typeItems = [
-  { label: '目录', value: 'DIRECTORY' },
-  { label: '菜单', value: 'MENU' },
-  { label: '按钮', value: 'BUTTON' }
-]
+const typeDict = useDict(DICT_TYPE.menuType)
+const statusDict = useDict(DICT_TYPE.normalDisable)
 const menuOptions = computed(() => Tree.toList(tree.value).map(m => ({ label: m.name, value: m.id })))
 
 const isOpen = ref(false)
@@ -34,9 +27,10 @@ const schema = afz.object({
     type: 'selectMenu',
     controlProps: () => ({ placeholder: '上级菜单（留空为顶级）', clear: true, valueKey: 'value', items: menuOptions.value })
   }).optional().meta({ label: '上级菜单' }),
-  type: afz.enum(['DIRECTORY', 'MENU', 'BUTTON'], {
-    controlProps: { valueKey: 'value', items: typeItems }
-  }).default('MENU').meta({ label: '菜单类型' }),
+  type: afz.enum([], {
+    type: 'selectMenu',
+    controlProps: () => ({ valueKey: 'value', items: typeDict.options.value })
+  }).meta({ label: '菜单类型' }),
   name: afz.string({ controlProps: { placeholder: '请输入菜单名称' } })
     .max(50, '最多 50 字').meta({ label: '菜单名称' }),
   icon: afz.string({ type: 'iconPicker', controlProps: { placeholder: '选择图标', clear: true } })
@@ -54,9 +48,10 @@ const schema = afz.object({
     .meta({ label: '是否缓存', if: ({ state }: { state: Partial<MenuCreateReq> }) => state.type !== 'BUTTON' }),
   visible: afz.boolean({ type: 'switch' }).default(true)
     .meta({ label: '是否显示', if: ({ state }: { state: Partial<MenuCreateReq> }) => state.type !== 'BUTTON' }),
-  status: afz.enum(['ENABLED', 'DISABLED'], {
-    controlProps: { valueKey: 'value', items: statusItems }
-  }).default('ENABLED').meta({ label: '状态' }),
+  status: afz.enum([], {
+    type: 'selectMenu',
+    controlProps: () => ({ valueKey: 'value', items: statusDict.options.value })
+  }).meta({ label: '状态' }),
   remark: afz.string({ type: 'textarea', controlProps: { rows: 3, placeholder: '备注信息' } })
     .max(500, '最多 500 字').optional().meta({ label: '备注' })
 })
@@ -65,7 +60,7 @@ type MenuSchema = z.output<typeof schema>
 function openCreate(parentId?: string) {
   isEditing.value = false
   editingId.value = null
-  state.value = { type: 'MENU', status: 'ENABLED', orderNum: 0, visible: true, isFrame: false, isCache: false, parentId }
+  state.value = { type: typeDict.defaultValue.value, status: statusDict.defaultValue.value, orderNum: 0, visible: true, isFrame: false, isCache: false, parentId }
   isOpen.value = true
 }
 
@@ -144,8 +139,8 @@ const columns: DataTableColumn<MenuResp>[] = [
     header: '类型',
     cell: ({ row }) => h(
       UBadge,
-      { color: MENU_TYPE_COLOR[row.original.type] ?? 'neutral', variant: 'subtle' },
-      () => MENU_TYPE_LABEL[row.original.type] ?? row.original.type
+      { color: typeDict.getColor(row.original.type), variant: 'subtle' },
+      () => typeDict.getLabel(row.original.type)
     )
   },
   { accessorKey: 'permissionCode', header: '权限标识' },
@@ -165,8 +160,8 @@ const columns: DataTableColumn<MenuResp>[] = [
     header: '状态',
     cell: ({ row }) => h(
       UBadge,
-      { color: ENABLED_DISABLED_COLOR[row.original.status] ?? 'neutral', variant: 'subtle' },
-      () => ENABLED_DISABLED_LABEL[row.original.status] ?? row.original.status
+      { color: statusDict.getColor(row.original.status), variant: 'subtle' },
+      () => statusDict.getLabel(row.original.status)
     )
   },
   {
@@ -222,7 +217,7 @@ const columns: DataTableColumn<MenuResp>[] = [
       :data="tree"
       :loading="pending"
       :default-expanded="1"
-      :pagination-ui="{}"
+      :pagination-ui="{ show: false }"
     >
       <template #toolbar-right>
         <UButton v-permission="'system:menu:create'" icon="i-lucide-plus" @click="openCreate()">
@@ -235,8 +230,8 @@ const columns: DataTableColumn<MenuResp>[] = [
       <template #body>
         <AppDescriptions v-if="detail" :items="detailItems">
           <template #type>
-            <UBadge :color="MENU_TYPE_COLOR[detail?.type ?? ''] ?? 'neutral'" variant="subtle">
-              {{ MENU_TYPE_LABEL[detail?.type ?? ''] ?? detail?.type }}
+            <UBadge :color="typeDict.getColor(detail?.type)" variant="subtle">
+              {{ typeDict.getLabel(detail?.type) }}
             </UBadge>
           </template>
           <template #icon>
@@ -247,8 +242,8 @@ const columns: DataTableColumn<MenuResp>[] = [
             <span v-else>-</span>
           </template>
           <template #status>
-            <UBadge :color="ENABLED_DISABLED_COLOR[detail?.status ?? ''] ?? 'neutral'" variant="subtle">
-              {{ ENABLED_DISABLED_LABEL[detail?.status ?? ''] ?? detail?.status }}
+            <UBadge :color="statusDict.getColor(detail?.status)" variant="subtle">
+              {{ statusDict.getLabel(detail?.status) }}
             </UBadge>
           </template>
         </AppDescriptions>

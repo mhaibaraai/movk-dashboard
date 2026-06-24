@@ -4,7 +4,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import { z } from 'zod'
 import { UBadge } from '#components'
 import type { UserCreateReq, UserUpdateReq } from '~/api/system/user'
-import { USER_GENDER_LABEL, USER_STATUS_COLOR, USER_STATUS_LABEL } from '~/constants/system'
+import { DICT_TYPE } from '~/constants/dict'
 
 const {
   users, total, pending, query,
@@ -17,16 +17,8 @@ const { hasPermission } = usePermission()
 const { afz } = useAutoForm()
 const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle: 'medium', timeStyle: 'medium' } })
 
-const statusItems = [
-  { label: '正常', value: 'ACTIVE' },
-  { label: '禁用', value: 'DISABLED' },
-  { label: '锁定', value: 'LOCKED' }
-]
-const genderItems = [
-  { label: '未知', value: 'UNKNOWN' },
-  { label: '男', value: 'MALE' },
-  { label: '女', value: 'FEMALE' }
-]
+const sexDict = useDict(DICT_TYPE.userSex)
+const statusDict = useDict(DICT_TYPE.userStatus)
 
 const pagination = useTablePagination(query.value.size ?? 20, handlePagination)
 const rowSelectionKeys = ref<string[]>([])
@@ -40,15 +32,15 @@ const searchSchema = afz.object({
   username: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-user', label: '用户名' } }).optional(),
   nickname: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-user-round', label: '昵称' } }).optional(),
   phone: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-phone', label: '手机号' } }).optional(),
-  status: afz.enum(['ACTIVE', 'DISABLED', 'LOCKED', 'DELETED'], {
+  status: afz.enum([], {
     type: 'selectMenu',
-    controlProps: {
+    controlProps: () => ({
       icon: 'i-lucide-toggle-left',
       placeholder: '状态',
       clear: true,
       valueKey: 'value',
-      items: [...statusItems, { label: '已删除', value: 'DELETED' }]
-    }
+      items: statusDict.options.value
+    })
   }).optional()
 })
 type SearchSchema = z.output<typeof searchSchema>
@@ -73,10 +65,10 @@ const formSchema = z.object({
   nickname: afz.string({ controlProps: { placeholder: '请输入昵称' } }).optional().meta({ label: '昵称' }),
   email: afz.email({ error: '邮箱格式不正确' }).optional().meta({ label: '邮箱' }),
   phone: afz.string({ controlProps: { placeholder: '请输入手机号' } }).optional().meta({ label: '手机号' }),
-  gender: afz.enum(['UNKNOWN', 'MALE', 'FEMALE'], { controlProps: { valueKey: 'value', items: genderItems } })
-    .default('UNKNOWN').meta({ label: '性别' }),
-  status: afz.enum(['ACTIVE', 'DISABLED', 'LOCKED', 'DELETED'], { controlProps: { valueKey: 'value', items: statusItems } })
-    .default('ACTIVE').meta({ label: '状态' }),
+  gender: afz.enum([], { type: 'selectMenu', controlProps: () => ({ valueKey: 'value', items: sexDict.options.value }) })
+    .meta({ label: '性别' }),
+  status: afz.enum([], { type: 'selectMenu', controlProps: () => ({ valueKey: 'value', items: statusDict.options.value }) })
+    .meta({ label: '状态' }),
   deptId: afz.enum([], {
     type: 'selectMenu',
     controlProps: () => ({ placeholder: '请选择部门', clear: true, valueKey: 'value', items: deptOptions.value })
@@ -98,7 +90,7 @@ type FormSchema = z.output<typeof formSchema>
 function openCreate() {
   isEditing.value = false
   editingId.value = null
-  formState.value = { status: 'ACTIVE', gender: 'UNKNOWN', roleIds: [], postIds: [] }
+  formState.value = { status: statusDict.defaultValue.value, gender: sexDict.defaultValue.value, roleIds: [], postIds: [] }
   isFormOpen.value = true
 }
 
@@ -170,7 +162,7 @@ const detailItems = computed(() => {
     { label: '手机号', key: 'phone', value: d.phone },
     { label: '邮箱', key: 'email', value: d.email },
     { label: '部门', key: 'deptName', value: d.deptName },
-    { label: '性别', key: 'gender', value: USER_GENDER_LABEL[d.gender] ?? d.gender },
+    { label: '性别', key: 'gender', value: sexDict.getLabel(d.gender) },
     { label: '状态', key: 'status', value: d.status },
     { label: '角色', key: 'roleNames', value: d.roleNames.join('、') },
     { label: '岗位', key: 'postNames', value: d.postNames.join('、') },
@@ -194,8 +186,8 @@ const columns: DataTableColumn<UserResp>[] = [
     header: '状态',
     cell: ({ row }) => h(
       UBadge,
-      { color: USER_STATUS_COLOR[row.original.status] ?? 'neutral', variant: 'subtle' },
-      () => USER_STATUS_LABEL[row.original.status] ?? row.original.status
+      { color: statusDict.getColor(row.original.status), variant: 'subtle' },
+      () => statusDict.getLabel(row.original.status)
     )
   },
   {
@@ -301,8 +293,8 @@ async function onBatchDelete() {
       <template #body>
         <AppDescriptions v-if="detail" :items="detailItems">
           <template #status>
-            <UBadge :color="USER_STATUS_COLOR[detail?.status ?? ''] ?? 'neutral'" variant="subtle">
-              {{ USER_STATUS_LABEL[detail?.status ?? ''] ?? detail?.status }}
+            <UBadge :color="statusDict.getColor(detail?.status)" variant="subtle">
+              {{ statusDict.getLabel(detail?.status) }}
             </UBadge>
           </template>
         </AppDescriptions>

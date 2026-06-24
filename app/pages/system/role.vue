@@ -5,7 +5,7 @@ import type { z } from 'zod'
 import { Tree } from '@movk/core'
 import { UBadge } from '#components'
 import type { RoleCreateReq, RoleUpdateReq } from '~/api/system/role'
-import { ENABLED_DISABLED_COLOR, ENABLED_DISABLED_LABEL, MENU_TYPE_ICON } from '~/constants/system'
+import { MENU_TYPE_ICON, DICT_TYPE } from '~/constants/dict'
 
 const {
   roles, total, pending, query,
@@ -22,27 +22,21 @@ const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle
 const pagination = useTablePagination(query.value.size ?? 20, handlePagination)
 const rowSelectionKeys = ref<string[]>([])
 
-const statusItems = [{ label: '启用', value: 'ENABLED' }, { label: '禁用', value: 'DISABLED' }]
-const roleTypeItems = [{ label: '内置', value: 'BUILT_IN' }, { label: '自定义', value: 'CUSTOM' }]
-const dataScopeItems = [
-  { label: '全部数据', value: 'ALL' },
-  { label: '本部门', value: 'DEPT' },
-  { label: '本部门及子部门', value: 'DEPT_AND_CHILD' },
-  { label: '仅本人', value: 'SELF' },
-  { label: '自定义部门', value: 'CUSTOM' }
-]
+const statusDict = useDict(DICT_TYPE.normalDisable)
+const roleTypeDict = useDict(DICT_TYPE.roleType)
+const dataScopeDict = useDict(DICT_TYPE.dataScope)
 
 // 搜索（服务端 query）
 const searchSchema = afz.object({
   code: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-hash', label: '角色编码' } }).optional(),
   name: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-shield', label: '角色名称' } }).optional(),
-  status: afz.enum(['ENABLED', 'DISABLED'], {
+  status: afz.enum([], {
     type: 'selectMenu',
-    controlProps: { icon: 'i-lucide-toggle-left', placeholder: '状态', clear: true, valueKey: 'value', items: statusItems }
+    controlProps: () => ({ icon: 'i-lucide-toggle-left', placeholder: '状态', clear: true, valueKey: 'value', items: statusDict.options.value })
   }).optional(),
-  roleType: afz.enum(['BUILT_IN', 'CUSTOM'], {
+  roleType: afz.enum([], {
     type: 'selectMenu',
-    controlProps: { icon: 'i-lucide-tag', placeholder: '类型', clear: true, valueKey: 'value', items: roleTypeItems }
+    controlProps: () => ({ icon: 'i-lucide-tag', placeholder: '类型', clear: true, valueKey: 'value', items: roleTypeDict.options.value })
   }).optional()
 })
 type RoleSearch = z.output<typeof searchSchema>
@@ -65,17 +59,18 @@ const schema = afz.object({
   name: afz.string({ controlProps: { placeholder: '请输入角色名称' } })
     .max(50, '最多 50 字').meta({ label: '角色名称' }),
   roleSort: afz.number().default(0).meta({ label: '排序' }),
-  dataScope: afz.enum(['ALL', 'DEPT', 'DEPT_AND_CHILD', 'SELF', 'CUSTOM'], {
+  dataScope: afz.enum([], {
     type: 'selectMenu',
-    controlProps: { valueKey: 'value', items: dataScopeItems }
-  }).default('ALL').meta({ label: '数据范围' }),
+    controlProps: () => ({ valueKey: 'value', items: dataScopeDict.options.value })
+  }).meta({ label: '数据范围' }),
   dataScopeDeptIds: afz.array(afz.string(), {
     type: 'selectMenu',
     controlProps: () => ({ multiple: true, placeholder: '请选择部门', valueKey: 'value', items: deptOptions.value })
   }).default([]).meta({ label: '自定义部门', if: ({ state }: { state: Partial<RoleCreateReq> }) => state.dataScope === 'CUSTOM' }),
-  status: afz.enum(['ENABLED', 'DISABLED'], {
-    controlProps: { valueKey: 'value', items: statusItems }
-  }).default('ENABLED').meta({ label: '状态' }),
+  status: afz.enum([], {
+    type: 'selectMenu',
+    controlProps: () => ({ valueKey: 'value', items: statusDict.options.value })
+  }).meta({ label: '状态' }),
   remark: afz.string({ type: 'textarea', controlProps: { rows: 3, placeholder: '备注信息' } })
     .max(500, '最多 500 字').optional().meta({ label: '备注' })
 })
@@ -84,7 +79,7 @@ type RoleSchema = z.output<typeof schema>
 function openCreate() {
   isEditing.value = false
   editingId.value = null
-  state.value = { status: 'ENABLED', roleSort: 0, dataScope: 'ALL' }
+  state.value = { status: statusDict.defaultValue.value, roleSort: 0, dataScope: dataScopeDict.defaultValue.value }
   isOpen.value = true
 }
 
@@ -123,7 +118,7 @@ async function onDeleteBatch() {
 interface MenuTreeItem {
   label: string
   value: string
-  type: MenuType
+  type: string
   icon: string
 }
 const assignOpen = ref(false)
@@ -170,7 +165,7 @@ const detailItems = computed(() => {
     { label: '角色名称', key: 'name', value: d.name },
     { label: '类型', key: 'roleType', value: d.roleType },
     { label: '排序', key: 'roleSort', value: d.roleSort },
-    { label: '数据范围', key: 'dataScope', value: dataScopeItems.find(i => i.value === d.dataScope)?.label ?? d.dataScope },
+    { label: '数据范围', key: 'dataScope', value: dataScopeDict.getLabel(d.dataScope) },
     { label: '自定义部门', key: 'dataScopeDeptNames', value: d.dataScopeDeptNames.join('、') },
     { label: '状态', key: 'status', value: d.status },
     { label: '备注', key: 'remark', value: d.remark },
@@ -188,8 +183,8 @@ const columns: DataTableColumn<RoleResp>[] = [
     header: '类型',
     cell: ({ row }) => h(
       UBadge,
-      { color: row.original.roleType === 'BUILT_IN' ? 'primary' : 'neutral', variant: 'subtle' },
-      () => row.original.roleType === 'BUILT_IN' ? '内置' : '自定义'
+      { color: roleTypeDict.getColor(row.original.roleType), variant: 'subtle' },
+      () => roleTypeDict.getLabel(row.original.roleType)
     )
   },
   { accessorKey: 'roleSort', header: '排序' },
@@ -198,8 +193,8 @@ const columns: DataTableColumn<RoleResp>[] = [
     header: '状态',
     cell: ({ row }) => h(
       UBadge,
-      { color: ENABLED_DISABLED_COLOR[row.original.status] ?? 'neutral', variant: 'subtle' },
-      () => ENABLED_DISABLED_LABEL[row.original.status] ?? row.original.status
+      { color: statusDict.getColor(row.original.status), variant: 'subtle' },
+      () => statusDict.getLabel(row.original.status)
     )
   },
   {
@@ -292,13 +287,13 @@ const columns: DataTableColumn<RoleResp>[] = [
       <template #body>
         <AppDescriptions v-if="detail" :items="detailItems">
           <template #roleType>
-            <UBadge :color="detail?.roleType === 'BUILT_IN' ? 'primary' : 'neutral'" variant="subtle">
-              {{ detail?.roleType === 'BUILT_IN' ? '内置' : '自定义' }}
+            <UBadge :color="roleTypeDict.getColor(detail?.roleType)" variant="subtle">
+              {{ roleTypeDict.getLabel(detail?.roleType) }}
             </UBadge>
           </template>
           <template #status>
-            <UBadge :color="ENABLED_DISABLED_COLOR[detail?.status ?? ''] ?? 'neutral'" variant="subtle">
-              {{ ENABLED_DISABLED_LABEL[detail?.status ?? ''] ?? detail?.status }}
+            <UBadge :color="statusDict.getColor(detail?.status)" variant="subtle">
+              {{ statusDict.getLabel(detail?.status) }}
             </UBadge>
           </template>
         </AppDescriptions>

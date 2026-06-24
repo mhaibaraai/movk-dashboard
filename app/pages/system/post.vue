@@ -4,7 +4,7 @@ import type { FormSubmitEvent, InferInput } from '@nuxt/ui'
 import type { z } from 'zod'
 import { UBadge } from '#components'
 import type { PostCreateReq, PostUpdateReq } from '~/api/system/post'
-import { ENABLED_DISABLED_COLOR, ENABLED_DISABLED_LABEL } from '~/constants/system'
+import { DICT_TYPE } from '~/constants/dict'
 
 const {
   posts, total, pending, query,
@@ -16,15 +16,15 @@ const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle
 
 const pagination = useTablePagination(query.value.size ?? 20, handlePagination)
 
-const statusItems = [{ label: '启用', value: 'ENABLED' }, { label: '禁用', value: 'DISABLED' }]
+const statusDict = useDict(DICT_TYPE.normalDisable)
 
 // 顶部搜索（服务端分页过滤）
 const searchSchema = afz.object({
   postCode: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-hash', label: '岗位编码' } }).optional(),
   postName: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-briefcase', label: '岗位名称' } }).optional(),
-  status: afz.enum(['ENABLED', 'DISABLED'], {
+  status: afz.enum([], {
     type: 'selectMenu',
-    controlProps: { icon: 'i-lucide-toggle-left', placeholder: '状态', clear: true, valueKey: 'value', items: statusItems }
+    controlProps: () => ({ icon: 'i-lucide-toggle-left', placeholder: '状态', clear: true, valueKey: 'value', items: statusDict.options.value })
   }).optional()
 })
 type PostSearch = z.output<typeof searchSchema>
@@ -46,9 +46,10 @@ const schema = afz.object({
   postName: afz.string({ controlProps: { placeholder: '请输入岗位名称' } })
     .max(50, '最多 50 字').meta({ label: '岗位名称' }),
   orderNum: afz.number().default(0).meta({ label: '排序' }),
-  status: afz.enum(['ENABLED', 'DISABLED'], {
-    controlProps: { valueKey: 'value', items: statusItems }
-  }).default('ENABLED').meta({ label: '状态' }),
+  status: afz.enum([], {
+    type: 'selectMenu',
+    controlProps: () => ({ valueKey: 'value', items: statusDict.options.value })
+  }).meta({ label: '状态' }),
   remark: afz.string({ type: 'textarea', controlProps: { rows: 3, placeholder: '备注信息' } })
     .max(500, '最多 500 字').optional().meta({ label: '备注' })
 })
@@ -58,7 +59,7 @@ type PostSchema = z.output<typeof schema>
 function openCreate() {
   isEditing.value = false
   editingId.value = null
-  state.value = { status: 'ENABLED', orderNum: 0 }
+  state.value = { status: statusDict.defaultValue.value, orderNum: 0 }
   isOpen.value = true
 }
 
@@ -117,8 +118,8 @@ const columns: DataTableColumn<PostResp>[] = [
     header: '状态',
     cell: ({ row }) => h(
       UBadge,
-      { color: ENABLED_DISABLED_COLOR[row.original.status] ?? 'neutral', variant: 'subtle' },
-      () => ENABLED_DISABLED_LABEL[row.original.status] ?? row.original.status
+      { color: statusDict.getColor(row.original.status), variant: 'subtle' },
+      () => statusDict.getLabel(row.original.status)
     )
   },
   {
@@ -194,8 +195,8 @@ const columns: DataTableColumn<PostResp>[] = [
       <template #body>
         <AppDescriptions v-if="detail" :items="detailItems">
           <template #status>
-            <UBadge :color="ENABLED_DISABLED_COLOR[detail?.status ?? ''] ?? 'neutral'" variant="subtle">
-              {{ ENABLED_DISABLED_LABEL[detail?.status ?? ''] ?? detail?.status }}
+            <UBadge :color="statusDict.getColor(detail?.status)" variant="subtle">
+              {{ statusDict.getLabel(detail?.status) }}
             </UBadge>
           </template>
         </AppDescriptions>

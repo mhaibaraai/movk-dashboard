@@ -1,7 +1,7 @@
 export interface DictTypeCreateReq {
   dictName: string
   dictType: string
-  status?: 'ENABLED' | 'DISABLED'
+  status?: string
   remark?: string
 }
 
@@ -15,7 +15,7 @@ export interface DictDataCreateReq {
   cssClass?: string
   listClass?: string
   isDefault?: boolean
-  status?: 'ENABLED' | 'DISABLED'
+  status?: string
   remark?: string
 }
 

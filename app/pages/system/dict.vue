@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { DataTableColumn, PaginationState } from '@movk/nuxt'
-import type { FormSubmitEvent, InferInput } from '@nuxt/ui'
+import type { DataTableColumn } from '@movk/nuxt'
+import type { FormSubmitEvent } from '@nuxt/ui'
 import type { z } from 'zod'
 import { UBadge } from '#components'
 import type { DictTypeCreateReq } from '~/api/system/dict'
-import { DICT_LIST_CLASS_COLOR, ENABLED_DISABLED_COLOR, ENABLED_DISABLED_LABEL } from '~/constants/system'
+import { DICT_TYPE } from '~/constants/dict'
 
 const {
   dictTypes, typePending, selectedType, dictData, dataPending,
@@ -16,18 +16,15 @@ const { afz } = useAutoForm()
 const { hasPermission } = usePermission()
 const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle: 'medium', timeStyle: 'medium' } })
 
-const statusItems = [{ label: '启用', value: 'ENABLED' }, { label: '禁用', value: 'DISABLED' }]
+const statusDict = useDict(DICT_TYPE.normalDisable)
 const listClassItems = [
-  { label: '默认', value: 'default' },
+  { label: '默认', value: 'neutral' },
   { label: '主要', value: 'primary' },
   { label: '成功', value: 'success' },
   { label: '信息', value: 'info' },
   { label: '警告', value: 'warning' },
-  { label: '危险', value: 'danger' }
+  { label: '危险', value: 'error' }
 ]
-
-const typePagination = ref<PaginationState>({ pageIndex: 0, pageSize: 10 })
-const dataPagination = ref<PaginationState>({ pageIndex: 0, pageSize: 10 })
 
 // 类型搜索（客户端过滤）
 const typeSearchSchema = afz.object({
@@ -35,28 +32,16 @@ const typeSearchSchema = afz.object({
   dictType: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-tag', label: '字典类型' } }).optional()
 })
 type TypeSearch = z.output<typeof typeSearchSchema>
-const typeSearchState = ref<Partial<InferInput<typeof typeSearchSchema>>>({})
-const appliedTypeSearch = ref<Partial<TypeSearch>>({})
-
-function onTypeSearch(event: FormSubmitEvent<TypeSearch>) {
-  appliedTypeSearch.value = event.data
-}
-function onTypeSearchReset() {
-  appliedTypeSearch.value = {}
-}
+const typeSearchState = ref<Partial<TypeSearch>>({})
 
 const filteredTypes = computed(() => {
-  const { dictName, dictType } = appliedTypeSearch.value
+  const { dictName, dictType } = typeSearchState.value
   return dictTypes.value.filter((t) => {
     if (dictName && !t.dictName.toLowerCase().includes(dictName.toLowerCase())) return false
     if (dictType && !t.dictType.toLowerCase().includes(dictType.toLowerCase())) return false
     return true
   })
 })
-
-function selectType(dictType: string) {
-  selectedType.value = dictType
-}
 
 // 类型表单
 const isTypeOpen = ref(false)
@@ -70,8 +55,8 @@ const typeSchema = afz.object({
     .min(1, '请输入字典名称').max(100, '最多 100 字').meta({ label: '字典名称' }),
   dictType: afz.string({ controlProps: () => ({ disabled: isTypeEditing.value, placeholder: '请输入字典类型' }) })
     .min(1, '请输入字典类型').max(100, '最多 100 字').meta({ label: '字典类型' }),
-  status: afz.enum(['ENABLED', 'DISABLED'], { controlProps: { valueKey: 'value', items: statusItems } })
-    .default('ENABLED').meta({ label: '状态' }),
+  status: afz.enum([], { type: 'selectMenu', controlProps: () => ({ valueKey: 'value', items: statusDict.options.value }) })
+    .meta({ label: '状态' }),
   remark: afz.string({ type: 'textarea', controlProps: { rows: 3, placeholder: '备注信息' } })
     .max(500, '最多 500 字').optional().meta({ label: '备注' })
 })
@@ -80,7 +65,7 @@ type TypeSchema = z.output<typeof typeSchema>
 function openCreateType() {
   isTypeEditing.value = false
   editingTypeId.value = null
-  typeState.value = { status: 'ENABLED' }
+  typeState.value = { status: statusDict.defaultValue.value }
   isTypeOpen.value = true
 }
 async function openEditType(id: string) {
@@ -118,13 +103,13 @@ const dataSchema = afz.object({
   dictValue: afz.string({ controlProps: { placeholder: '请输入字典键值' } })
     .min(1, '请输入字典键值').max(100, '最多 100 字').meta({ label: '字典键值' }),
   dictSort: afz.number().default(0).meta({ label: '排序' }),
-  listClass: afz.enum(['default', 'primary', 'success', 'info', 'warning', 'danger'], {
+  listClass: afz.enum(['neutral', 'primary', 'success', 'info', 'warning', 'error'], {
     type: 'selectMenu',
     controlProps: { clear: true, valueKey: 'value', items: listClassItems }
   }).optional().meta({ label: '回显样式' }),
   isDefault: afz.boolean().default(false).meta({ label: '是否默认' }),
-  status: afz.enum(['ENABLED', 'DISABLED'], { controlProps: { valueKey: 'value', items: statusItems } })
-    .default('ENABLED').meta({ label: '状态' }),
+  status: afz.enum([], { type: 'selectMenu', controlProps: () => ({ valueKey: 'value', items: statusDict.options.value }) })
+    .meta({ label: '状态' }),
   remark: afz.string({ type: 'textarea', controlProps: { rows: 3, placeholder: '备注信息' } })
     .max(500, '最多 500 字').optional().meta({ label: '备注' })
 })
@@ -134,7 +119,7 @@ function openCreateData() {
   if (!selectedType.value) return
   isDataEditing.value = false
   editingDataId.value = null
-  dataState.value = { dictType: selectedType.value, status: 'ENABLED', dictSort: 0, isDefault: false }
+  dataState.value = { dictType: selectedType.value, status: statusDict.defaultValue.value, dictSort: 0, isDefault: false }
   isDataOpen.value = true
 }
 async function openEditData(id: string) {
@@ -206,6 +191,7 @@ const dataDetailItems = computed(() => {
 })
 
 const typeColumns: DataTableColumn<DictTypeResp>[] = [
+  { type: 'selection', mode: 'single' },
   { accessorKey: 'dictName', header: '字典名称', sortable: true },
   { accessorKey: 'dictType', header: '字典类型', sortable: true },
   {
@@ -213,8 +199,8 @@ const typeColumns: DataTableColumn<DictTypeResp>[] = [
     header: '状态',
     cell: ({ row }) => h(
       UBadge,
-      { color: ENABLED_DISABLED_COLOR[row.original.status] ?? 'neutral', variant: 'subtle' },
-      () => ENABLED_DISABLED_LABEL[row.original.status] ?? row.original.status
+      { color: statusDict.getColor(row.original.status), variant: 'subtle' },
+      () => statusDict.getLabel(row.original.status)
     )
   },
   { accessorKey: 'remark', header: '备注', tooltip: true, size: 160 },
@@ -227,19 +213,14 @@ const typeColumns: DataTableColumn<DictTypeResp>[] = [
   {
     type: 'actions',
     fixed: 'right',
-    size: 150,
-    maxInline: 4,
+    size: 120,
+    maxInline: 3,
     actions: [
       {
         key: 'detail',
         visibility: hasPermission('system:dict:query'),
         buttonProps: { icon: 'i-lucide-eye', variant: 'ghost', size: 'xs' },
         onClick: ({ row }) => openTypeDetail(row.id)
-      },
-      {
-        key: 'data',
-        buttonProps: { icon: 'i-lucide-list', variant: 'ghost', size: 'xs' },
-        onClick: ({ row }) => selectType(row.dictType)
       },
       {
         key: 'edit',
@@ -272,7 +253,7 @@ const dataColumns: DataTableColumn<DictDataResp>[] = [
     header: '字典标签',
     cell: ({ row }) => h(
       UBadge,
-      { color: DICT_LIST_CLASS_COLOR[row.original.listClass ?? 'default'] ?? 'neutral', variant: 'subtle' },
+      { color: row.original.listClass ?? 'neutral', variant: 'subtle' },
       () => row.original.dictLabel
     )
   },
@@ -292,8 +273,8 @@ const dataColumns: DataTableColumn<DictDataResp>[] = [
     header: '状态',
     cell: ({ row }) => h(
       UBadge,
-      { color: ENABLED_DISABLED_COLOR[row.original.status] ?? 'neutral', variant: 'subtle' },
-      () => ENABLED_DISABLED_LABEL[row.original.status] ?? row.original.status
+      { color: statusDict.getColor(row.original.status), variant: 'subtle' },
+      () => statusDict.getLabel(row.original.status)
     )
   },
   { accessorKey: 'remark', header: '备注', tooltip: true, size: 160 },
@@ -337,48 +318,51 @@ const dataColumns: DataTableColumn<DictDataResp>[] = [
 
 <template>
   <div class="flex flex-col gap-4 lg:flex-row min-h-0 flex-1">
-    <div class="flex min-w-0 flex-col gap-4 lg:w-2/5 min-h-0">
+    <div class="flex min-w-0 flex-col lg:w-2/5 min-h-0">
       <MSearchForm
         v-model="typeSearchState"
         :schema="typeSearchSchema"
         :global-meta="{ label: '' }"
         :cols="3"
-        @submit="onTypeSearch"
-        @reset="onTypeSearchReset"
-      />
+      >
+        <template #actions>
+          <div class="flex items-center gap-2">
+            <UButton v-permission="'system:dict:create'" icon="i-lucide-plus" @click="openCreateType">
+              新增类型
+            </UButton>
+          </div>
+        </template>
+      </MSearchForm>
       <AppDataTable
-        v-model:pagination="typePagination"
-        row-key="id"
+        :row-selection-keys="selectedType ? [selectedType] : []"
+        row-key="dictType"
         :columns="typeColumns"
         :data="filteredTypes"
         :loading="typePending"
-      >
-        <template #toolbar-right>
-          <UButton v-permission="'system:dict:create'" icon="i-lucide-plus" @click="openCreateType">
-            新增类型
-          </UButton>
-        </template>
-      </AppDataTable>
+        select-on-row-click
+        :show-column-settings="false"
+        :pagination-ui="{ show: false }"
+        @update:row-selection-keys="(v : string) => selectedType = v[0]"
+      />
     </div>
 
     <div class="flex min-w-0 flex-1 flex-col gap-4 min-h-0">
       <AppDataTable
-        v-model:pagination="dataPagination"
         row-key="id"
         :columns="dataColumns"
         :data="dictData"
         :loading="dataPending"
       >
-        <template #toolbar-left>
-          <span class="text-sm text-muted">
-            {{ selectedType ? `字典数据：${selectedType}` : '请选择左侧字典类型' }}
-          </span>
-        </template>
         <template #toolbar-right>
           <UButton icon="i-lucide-refresh-cw" variant="outline" color="neutral" @click="handleRefreshCache">
             刷新缓存
           </UButton>
-          <UButton v-permission="'system:dict:create'" icon="i-lucide-plus" :disabled="!selectedType" @click="openCreateData">
+          <UButton
+            v-permission="'system:dict:create'"
+            icon="i-lucide-plus"
+            :disabled="!selectedType"
+            @click="openCreateData"
+          >
             新增数据
           </UButton>
         </template>
@@ -389,8 +373,8 @@ const dataColumns: DataTableColumn<DictDataResp>[] = [
       <template #body>
         <AppDescriptions v-if="typeDetail" :items="typeDetailItems">
           <template #status>
-            <UBadge :color="ENABLED_DISABLED_COLOR[typeDetail?.status ?? ''] ?? 'neutral'" variant="subtle">
-              {{ ENABLED_DISABLED_LABEL[typeDetail?.status ?? ''] ?? typeDetail?.status }}
+            <UBadge :color="statusDict.getColor(typeDetail?.status)" variant="subtle">
+              {{ statusDict.getLabel(typeDetail?.status) }}
             </UBadge>
           </template>
         </AppDescriptions>
@@ -401,13 +385,13 @@ const dataColumns: DataTableColumn<DictDataResp>[] = [
       <template #body>
         <AppDescriptions v-if="dataDetail" :items="dataDetailItems">
           <template #dictLabel>
-            <UBadge :color="DICT_LIST_CLASS_COLOR[dataDetail?.listClass ?? 'default'] ?? 'neutral'" variant="subtle">
+            <UBadge :color="dataDetail?.listClass ?? 'neutral'" variant="subtle">
               {{ dataDetail?.dictLabel }}
             </UBadge>
           </template>
           <template #status>
-            <UBadge :color="ENABLED_DISABLED_COLOR[dataDetail?.status ?? ''] ?? 'neutral'" variant="subtle">
-              {{ ENABLED_DISABLED_LABEL[dataDetail?.status ?? ''] ?? dataDetail?.status }}
+            <UBadge :color="statusDict.getColor(dataDetail?.status)" variant="subtle">
+              {{ statusDict.getLabel(dataDetail?.status) }}
             </UBadge>
           </template>
         </AppDescriptions>
@@ -416,13 +400,7 @@ const dataColumns: DataTableColumn<DictDataResp>[] = [
 
     <USlideover v-model:open="isTypeOpen" :title="isTypeEditing ? '编辑字典类型' : '新增字典类型'" class="w-120">
       <template #body>
-        <MAutoForm
-          ref="typeFormRef"
-          :schema="typeSchema"
-          :state="typeState"
-          :submit="false"
-          @submit="onTypeSubmit"
-        />
+        <MAutoForm ref="typeFormRef" :schema="typeSchema" :state="typeState" :submit="false" @submit="onTypeSubmit" />
       </template>
       <template #footer>
         <div class="flex w-full justify-end gap-2">
@@ -438,13 +416,7 @@ const dataColumns: DataTableColumn<DictDataResp>[] = [
 
     <USlideover v-model:open="isDataOpen" :title="isDataEditing ? '编辑字典数据' : '新增字典数据'" class="w-120">
       <template #body>
-        <MAutoForm
-          ref="dataFormRef"
-          :schema="dataSchema"
-          :state="dataState"
-          :submit="false"
-          @submit="onDataSubmit"
-        />
+        <MAutoForm ref="dataFormRef" :schema="dataSchema" :state="dataState" :submit="false" @submit="onDataSubmit" />
       </template>
       <template #footer>
         <div class="flex w-full justify-end gap-2">

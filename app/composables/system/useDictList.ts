@@ -13,10 +13,9 @@ export function useDictList() {
 
   // 字典数据：按选中类型拉取
   const selectedType = ref<string>()
-  const dataQuery = computed(() => ({ dictType: selectedType.value }))
-  const { data: dictDataResp, pending: dataPending, refresh: refreshData } = useApiFetch<DictDataResp[]>(
+  const { data: dictDataResp, pending: dataPending, refresh: refreshData } = useClientApiFetch<DictDataResp[]>(
     '/v1/system/dicts/data',
-    { query: dataQuery, watch: [selectedType], toast: false, immediate: false }
+    { query: { dictType: selectedType }, immediate: false }
   )
   const dictData = computed(() => dictDataResp.value ?? [])
 

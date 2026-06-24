@@ -4,7 +4,7 @@ import type { FormSubmitEvent, InferInput } from '@nuxt/ui'
 import type { z } from 'zod'
 import { UBadge } from '#components'
 import type { ConfigCreateReq, ConfigUpdateReq } from '~/api/system/config'
-import { CONFIG_TYPE_COLOR, CONFIG_TYPE_LABEL } from '~/constants/system'
+import { DICT_TYPE } from '~/constants/dict'
 
 const { configs, pending, handleCreate, handleUpdate, handleDelete, handleRefreshCache, getDetail } = useConfigList()
 const { afz } = useAutoForm()
@@ -13,15 +13,15 @@ const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle
 
 const pagination = ref<PaginationState>({ pageIndex: 0, pageSize: 10 })
 
-const typeItems = [{ label: '内置', value: 'BUILTIN' }, { label: '自定义', value: 'CUSTOM' }]
+const typeDict = useDict(DICT_TYPE.configType)
 
 // 顶部搜索（后端无 query 参数，客户端过滤）
 const searchSchema = afz.object({
   configName: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-settings', label: '配置名称' } }).optional(),
   configKey: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-key', label: '配置键名' } }).optional(),
-  configType: afz.enum(['BUILTIN', 'CUSTOM'], {
+  configType: afz.enum([], {
     type: 'selectMenu',
-    controlProps: { icon: 'i-lucide-tag', placeholder: '配置类型', clear: true, valueKey: 'value', items: typeItems }
+    controlProps: () => ({ icon: 'i-lucide-tag', placeholder: '配置类型', clear: true, valueKey: 'value', items: typeDict.options.value })
   }).optional()
 })
 type ConfigSearch = z.output<typeof searchSchema>
@@ -58,9 +58,10 @@ const schema = afz.object({
     .min(1, '请输入配置键名').max(100, '最多 100 字').meta({ label: '配置键名' }),
   configValue: afz.string({ controlProps: { placeholder: '请输入配置值' } })
     .max(500, '最多 500 字').optional().meta({ label: '配置值' }),
-  configType: afz.enum(['BUILTIN', 'CUSTOM'], {
-    controlProps: { valueKey: 'value', items: typeItems }
-  }).default('CUSTOM').meta({ label: '配置类型' }),
+  configType: afz.enum([], {
+    type: 'selectMenu',
+    controlProps: () => ({ valueKey: 'value', items: typeDict.options.value })
+  }).meta({ label: '配置类型' }),
   remark: afz.string({ type: 'textarea', controlProps: { rows: 3, placeholder: '备注信息' } })
     .max(500, '最多 500 字').optional().meta({ label: '备注' })
 })
@@ -70,7 +71,7 @@ type ConfigSchema = z.output<typeof schema>
 function openCreate() {
   isEditing.value = false
   editingId.value = null
-  state.value = { configType: 'CUSTOM' }
+  state.value = { configType: typeDict.defaultValue.value }
   isOpen.value = true
 }
 
@@ -128,8 +129,8 @@ const columns: DataTableColumn<ConfigResp>[] = [
     header: '配置类型',
     cell: ({ row }) => h(
       UBadge,
-      { color: CONFIG_TYPE_COLOR[row.original.configType] ?? 'neutral', variant: 'subtle' },
-      () => CONFIG_TYPE_LABEL[row.original.configType] ?? row.original.configType
+      { color: typeDict.getColor(row.original.configType), variant: 'subtle' },
+      () => typeDict.getLabel(row.original.configType)
     )
   },
   { accessorKey: 'remark', header: '备注', tooltip: true, size: 200 },
@@ -215,8 +216,8 @@ const columns: DataTableColumn<ConfigResp>[] = [
       <template #body>
         <AppDescriptions v-if="detail" :items="detailItems">
           <template #configType>
-            <UBadge :color="CONFIG_TYPE_COLOR[detail?.configType ?? ''] ?? 'neutral'" variant="subtle">
-              {{ CONFIG_TYPE_LABEL[detail?.configType ?? ''] ?? detail?.configType }}
+            <UBadge :color="typeDict.getColor(detail?.configType)" variant="subtle">
+              {{ typeDict.getLabel(detail?.configType) }}
             </UBadge>
           </template>
         </AppDescriptions>
