@@ -18,8 +18,8 @@ importers:
         specifier: ^1.3.1
         version: 1.3.1(vue@3.5.38(typescript@6.0.3))
       '@movk/nuxt':
-        specifier: ^1.4.0
-        version: 1.4.0(2d09ec2a4a453cbbae618e1c3bca046c)
+        specifier: https://pkg.pr.new/@movk/nuxt@d0851e3
+        version: https://pkg.pr.new/@movk/nuxt@d0851e3(2d09ec2a4a453cbbae618e1c3bca046c)
       '@nuxt/ui':
         specifier: ^4.9.0
         version: 4.9.0(de7bf13543829d7ded1849fed1600699)
@@ -926,8 +926,9 @@ packages:
     peerDependencies:
       vue: ^3.5.25
 
-  '@movk/nuxt@1.4.0':
-    resolution: {integrity: sha512-6YDbeMg5XMPq5CLyM6z4InMNUDGwCfh5+a61KbXijseAxhv6znSDy5xAqwmadFKc3V4qoo9P01TQpNKMwEe3oQ==}
+  '@movk/nuxt@https://pkg.pr.new/@movk/nuxt@d0851e3':
+    resolution: {integrity: sha512-4IkBatzuMrupKc/E7hGuOzL3bfWBGLWQLeMuuK27vkPPv6zJ23UEpbHAmUTNMfsid4CWQg+Wq0sy105UxfoWVg==, tarball: https://pkg.pr.new/@movk/nuxt@d0851e3}
+    version: 1.4.1
     engines: {node: ^20.19.0 || >=22.12.0}
     peerDependencies:
       '@nuxt/ui': '>=4.6.0'
@@ -6512,7 +6513,7 @@ snapshots:
       '@vueuse/core': 14.3.0(vue@3.5.38(typescript@6.0.3))
       vue: 3.5.38(typescript@6.0.3)
 
-  '@movk/nuxt@1.4.0(2d09ec2a4a453cbbae618e1c3bca046c)':
+  '@movk/nuxt@https://pkg.pr.new/@movk/nuxt@d0851e3(2d09ec2a4a453cbbae618e1c3bca046c)':
     dependencies:
       '@iconify-json/lucide': 1.2.114
       '@iconify-json/ph': 1.2.2
