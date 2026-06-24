@@ -5,7 +5,7 @@ import type { z } from 'zod'
 import { Tree } from '@movk/core'
 import { UBadge } from '#components'
 import type { RoleCreateReq, RoleUpdateReq } from '~/api/system/role'
-import { ENABLED_DISABLED_COLOR, ENABLED_DISABLED_LABEL, MENU_TYPE_COLOR, MENU_TYPE_ICON, MENU_TYPE_LABEL } from '~/constants/system'
+import { ENABLED_DISABLED_COLOR, ENABLED_DISABLED_LABEL, MENU_TYPE_ICON } from '~/constants/system'
 
 const {
   roles, total, pending, query,
@@ -119,14 +119,18 @@ async function onDeleteBatch() {
   rowSelectionKeys.value = []
 }
 
-// 分配菜单（UTree multiple 的 model 为节点对象数组，需与 menuIds 互转）
-interface MenuTreeNode { label: string, value: string, type: MenuType, icon: string }
+// 分配菜单（MTree checkable 的 model 为节点对象数组，需与 menuIds 互转）
+interface MenuTreeItem {
+  label: string
+  value: string
+  type: MenuType
+  icon: string
+}
 const assignOpen = ref(false)
 const assignRoleId = ref<string | null>(null)
-const assignSelected = ref<MenuTreeNode[]>([])
-const expandedKeys = ref<string[]>([])
+const assignSelected = ref<MenuTreeItem[]>([])
 const menuTreeItems = computed(() =>
-  Tree.transform(menuTree.value, ({ node }) => ({
+  Tree.transform<MenuResp, MenuTreeItem>(menuTree.value, ({ node }) => ({
     label: node.name,
     value: node.id,
     type: node.type,
@@ -135,31 +139,11 @@ const menuTreeItems = computed(() =>
 )
 const menuTreeFlat = computed(() => Tree.toList(menuTreeItems.value))
 
-const allExpanded = computed(() =>
-  menuTreeFlat.value.length > 0 && expandedKeys.value.length >= menuTreeFlat.value.length
-)
-function toggleExpandAll() {
-  expandedKeys.value = allExpanded.value ? [] : menuTreeFlat.value.map(n => n.value)
-}
-function toggleNode(value: string) {
-  expandedKeys.value = expandedKeys.value.includes(value)
-    ? expandedKeys.value.filter(k => k !== value)
-    : [...expandedKeys.value, value]
-}
-
-const allSelected = computed(() =>
-  menuTreeFlat.value.length > 0 && assignSelected.value.length >= menuTreeFlat.value.length
-)
-function toggleSelectAll() {
-  assignSelected.value = allSelected.value ? [] : [...menuTreeFlat.value]
-}
-
 async function openAssign(id: string) {
   assignRoleId.value = id
   const detail = await getDetail(id)
   const ids = detail.menuIds ?? []
   assignSelected.value = menuTreeFlat.value.filter(n => ids.includes(n.value))
-  expandedKeys.value = []
   assignOpen.value = true
 }
 
@@ -169,6 +153,31 @@ async function confirmAssign() {
   }
   assignOpen.value = false
 }
+
+// 详情
+const isDetailOpen = ref(false)
+const detail = ref<RoleResp>()
+async function openDetail(id: string) {
+  detail.value = await getDetail(id)
+  isDetailOpen.value = true
+}
+
+const detailItems = computed(() => {
+  const d = detail.value
+  if (!d) return []
+  return [
+    { label: '角色编码', key: 'code', value: d.code },
+    { label: '角色名称', key: 'name', value: d.name },
+    { label: '类型', key: 'roleType', value: d.roleType },
+    { label: '排序', key: 'roleSort', value: d.roleSort },
+    { label: '数据范围', key: 'dataScope', value: dataScopeItems.find(i => i.value === d.dataScope)?.label ?? d.dataScope },
+    { label: '自定义部门', key: 'dataScopeDeptNames', value: d.dataScopeDeptNames.join('、') },
+    { label: '状态', key: 'status', value: d.status },
+    { label: '备注', key: 'remark', value: d.remark },
+    { label: '创建时间', key: 'createdAt', value: formatter.format(formatter.fromISO(d.createdAt)) },
+    { label: '更新时间', key: 'updatedAt', value: formatter.format(formatter.fromISO(d.updatedAt)) }
+  ]
+})
 
 const columns: DataTableColumn<RoleResp>[] = [
   { type: 'selection', fixed: 'left', size: 48 },
@@ -202,7 +211,14 @@ const columns: DataTableColumn<RoleResp>[] = [
     type: 'actions',
     fixed: 'right',
     size: 150,
+    maxInline: 4,
     actions: [
+      {
+        key: 'detail',
+        visibility: hasPermission('system:role:query'),
+        buttonProps: { icon: 'i-lucide-eye', variant: 'ghost', size: 'xs' },
+        onClick: ({ row }) => openDetail(row.id)
+      },
       {
         key: 'edit',
         visibility: hasPermission('system:role:update'),
@@ -272,6 +288,23 @@ const columns: DataTableColumn<RoleResp>[] = [
       </template>
     </AppDataTable>
 
+    <USlideover v-model:open="isDetailOpen" title="角色详情" class="w-120">
+      <template #body>
+        <AppDescriptions v-if="detail" :items="detailItems">
+          <template #roleType>
+            <UBadge :color="detail?.roleType === 'BUILT_IN' ? 'primary' : 'neutral'" variant="subtle">
+              {{ detail?.roleType === 'BUILT_IN' ? '内置' : '自定义' }}
+            </UBadge>
+          </template>
+          <template #status>
+            <UBadge :color="ENABLED_DISABLED_COLOR[detail?.status ?? ''] ?? 'neutral'" variant="subtle">
+              {{ ENABLED_DISABLED_LABEL[detail?.status ?? ''] ?? detail?.status }}
+            </UBadge>
+          </template>
+        </AppDescriptions>
+      </template>
+    </USlideover>
+
     <USlideover v-model:open="isOpen" :title="isEditing ? '编辑角色' : '新增角色'" class="w-120">
       <template #body>
         <MAutoForm
@@ -296,75 +329,18 @@ const columns: DataTableColumn<RoleResp>[] = [
 
     <USlideover v-model:open="assignOpen" title="分配菜单" class="w-120">
       <template #body>
-        <div class="flex flex-col gap-2 min-h-0 h-full">
-          <div class="flex items-center justify-between">
-            <UButton
-              variant="ghost"
-              color="neutral"
-              size="xs"
-              :icon="allExpanded ? 'i-lucide-chevrons-down-up' : 'i-lucide-chevrons-up-down'"
-              @click="toggleExpandAll"
-            >
-              {{ allExpanded ? '折叠全部' : '展开全部' }}
-            </UButton>
-            <UButton
-              variant="ghost"
-              color="neutral"
-              size="xs"
-              :icon="allSelected ? 'i-lucide-square' : 'i-lucide-square-check'"
-              @click="toggleSelectAll"
-            >
-              {{ allSelected ? '清空' : '全选' }}
-            </UButton>
-          </div>
-
-          <UTree
-            v-model="assignSelected"
-            v-model:expanded="expandedKeys"
-            :items="menuTreeItems"
-            :get-key="(item) => item.value"
-            :as="{ link: 'div' }"
-            :ui="{ link: 'before:bg-transparent' }"
-            multiple
-            propagate-select
-            class="flex-1 overflow-auto"
-            @toggle="(e) => e.preventDefault()"
-          >
-            <template #item-leading="{ item, selected, indeterminate }">
-              <UCheckbox
-                :model-value="selected"
-                :indeterminate="indeterminate"
-                tabindex="-1"
-                class="pointer-events-none"
-              />
-              <UIcon :name="item.icon" class="size-4 shrink-0 text-muted" />
-            </template>
-            <template #item-label="{ item }">
-              <span class="truncate">{{ item.label }}</span>
-              <UBadge
-                v-if="item.type === 'BUTTON'"
-                :color="MENU_TYPE_COLOR.BUTTON"
-                variant="subtle"
-                size="sm"
-                class="ml-2"
-              >
-                {{ MENU_TYPE_LABEL.BUTTON }}
-              </UBadge>
-            </template>
-            <template #item-trailing="{ item, expanded }">
-              <UButton
-                v-if="item.children?.length"
-                icon="i-lucide-chevron-down"
-                color="neutral"
-                variant="ghost"
-                size="xs"
-                class="transition-transform"
-                :class="expanded ? '' : '-rotate-90'"
-                @click.stop="toggleNode(item.value)"
-              />
-            </template>
-          </UTree>
-        </div>
+        <MTree
+          v-model="assignSelected"
+          :items="menuTreeItems"
+          toolbar
+          searchable
+          checkable
+          default-expanded
+          :ui="{
+            container: 'h-full overflow-y-hidden',
+            root: 'flex-1 overflow-y-auto'
+          }"
+        />
       </template>
       <template #footer>
         <div class="flex w-full justify-end gap-2">

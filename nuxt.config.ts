@@ -28,10 +28,6 @@ export default defineNuxtConfig({
     }
   },
 
-  routeRules: {
-    '/system': { redirect: '/system/user', prerender: false }
-  },
-
   compatibilityDate: 'latest',
 
   vite: {
@@ -55,7 +51,6 @@ export default defineNuxtConfig({
   },
 
   icon: {
-    // 本地自定义 SVG 集合，引用名为 i-custom-<文件名>
     customCollections: [
       { prefix: 'custom', dir: './app/assets/icons' }
     ]

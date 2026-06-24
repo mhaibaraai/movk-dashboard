@@ -31,7 +31,7 @@ export function useConfigApi() {
       $api(`/v1/system/configs/${id}`, { method: 'DELETE' }),
 
     getById: (id: string) =>
-      $api<ConfigResp>(`/v1/system/configs/${id}`, { context: { toast: false } }),
+      $api<ConfigResp>(`/v1/system/configs/${id}`),
 
     refreshCache: () =>
       $api('/v1/system/configs/refresh-cache', { method: 'POST' })

@@ -25,7 +25,7 @@ export function useDeptApi() {
       $api(`/v1/system/depts/${id}`, { method: 'DELETE' }),
 
     getById: (id: string) =>
-      $api<DeptResp>(`/v1/system/depts/${id}`, { context: { toast: false } }),
+      $api<DeptResp>(`/v1/system/depts/${id}`),
 
     getChildIds: (id: string) =>
       $api<string[]>(`/v1/system/depts/${id}/children-ids`, { context: { toast: false } })

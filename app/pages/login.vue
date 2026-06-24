@@ -3,7 +3,8 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import type { z } from 'zod'
 
 definePageMeta({
-  layout: 'cert'
+  layout: 'cert',
+  public: true
 })
 
 const { fetch: fetchSession } = useUserSession()

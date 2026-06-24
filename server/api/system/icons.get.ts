@@ -2,8 +2,7 @@ import lucide from '@iconify-json/lucide/icons.json'
 
 // 本地自定义 SVG 集合（app/assets/icons），新增 svg 时同步维护此列表。
 const CUSTOM_ICONS = [
-  'system', 'monitor', 'user', 'peoples', 'tree-table', 'tree', 'post',
-  'dict', 'message', 'upload', 'edit', 'online', 'log', 'form'
+  'system', 'monitor'
 ]
 
 // 返回可供 IconPicker 选择的图标，按集合分组：

@@ -162,6 +162,49 @@ async function onDataSubmit(event: FormSubmitEvent<DataSchema>) {
   isDataOpen.value = false
 }
 
+// 类型详情
+const isTypeDetailOpen = ref(false)
+const typeDetail = ref<DictTypeResp>()
+async function openTypeDetail(id: string) {
+  typeDetail.value = await getTypeDetail(id)
+  isTypeDetailOpen.value = true
+}
+const typeDetailItems = computed(() => {
+  const d = typeDetail.value
+  if (!d) return []
+  return [
+    { label: '字典名称', key: 'dictName', value: d.dictName },
+    { label: '字典类型', key: 'dictType', value: d.dictType },
+    { label: '状态', key: 'status', value: d.status },
+    { label: '备注', key: 'remark', value: d.remark },
+    { label: '创建时间', key: 'createdAt', value: formatter.format(formatter.fromISO(d.createdAt)) },
+    { label: '更新时间', key: 'updatedAt', value: formatter.format(formatter.fromISO(d.updatedAt)) }
+  ]
+})
+
+// 数据详情
+const isDataDetailOpen = ref(false)
+const dataDetail = ref<DictDataResp>()
+async function openDataDetail(id: string) {
+  dataDetail.value = await getDataDetail(id)
+  isDataDetailOpen.value = true
+}
+const dataDetailItems = computed(() => {
+  const d = dataDetail.value
+  if (!d) return []
+  return [
+    { label: '字典标签', key: 'dictLabel', value: d.dictLabel },
+    { label: '字典键值', key: 'dictValue', value: d.dictValue },
+    { label: '排序', key: 'dictSort', value: d.dictSort },
+    { label: '回显样式', key: 'listClass', value: listClassItems.find(i => i.value === d.listClass)?.label ?? d.listClass },
+    { label: '是否默认', key: 'isDefault', value: d.isDefault ? '是' : '否' },
+    { label: '状态', key: 'status', value: d.status },
+    { label: '备注', key: 'remark', value: d.remark },
+    { label: '创建时间', key: 'createdAt', value: formatter.format(formatter.fromISO(d.createdAt)) },
+    { label: '更新时间', key: 'updatedAt', value: formatter.format(formatter.fromISO(d.updatedAt)) }
+  ]
+})
+
 const typeColumns: DataTableColumn<DictTypeResp>[] = [
   { accessorKey: 'dictName', header: '字典名称', sortable: true },
   { accessorKey: 'dictType', header: '字典类型', sortable: true },
@@ -184,8 +227,15 @@ const typeColumns: DataTableColumn<DictTypeResp>[] = [
   {
     type: 'actions',
     fixed: 'right',
-    size: 140,
+    size: 150,
+    maxInline: 4,
     actions: [
+      {
+        key: 'detail',
+        visibility: hasPermission('system:dict:query'),
+        buttonProps: { icon: 'i-lucide-eye', variant: 'ghost', size: 'xs' },
+        onClick: ({ row }) => openTypeDetail(row.id)
+      },
       {
         key: 'data',
         buttonProps: { icon: 'i-lucide-list', variant: 'ghost', size: 'xs' },
@@ -250,8 +300,15 @@ const dataColumns: DataTableColumn<DictDataResp>[] = [
   {
     type: 'actions',
     fixed: 'right',
-    size: 120,
+    size: 150,
+    maxInline: 3,
     actions: [
+      {
+        key: 'detail',
+        visibility: hasPermission('system:dict:query'),
+        buttonProps: { icon: 'i-lucide-eye', variant: 'ghost', size: 'xs' },
+        onClick: ({ row }) => openDataDetail(row.id)
+      },
       {
         key: 'edit',
         visibility: hasPermission('system:dict:update'),
@@ -327,6 +384,35 @@ const dataColumns: DataTableColumn<DictDataResp>[] = [
         </template>
       </AppDataTable>
     </div>
+
+    <USlideover v-model:open="isTypeDetailOpen" title="字典类型详情" class="w-120">
+      <template #body>
+        <AppDescriptions v-if="typeDetail" :items="typeDetailItems">
+          <template #status>
+            <UBadge :color="ENABLED_DISABLED_COLOR[typeDetail?.status ?? ''] ?? 'neutral'" variant="subtle">
+              {{ ENABLED_DISABLED_LABEL[typeDetail?.status ?? ''] ?? typeDetail?.status }}
+            </UBadge>
+          </template>
+        </AppDescriptions>
+      </template>
+    </USlideover>
+
+    <USlideover v-model:open="isDataDetailOpen" title="字典数据详情" class="w-120">
+      <template #body>
+        <AppDescriptions v-if="dataDetail" :items="dataDetailItems">
+          <template #dictLabel>
+            <UBadge :color="DICT_LIST_CLASS_COLOR[dataDetail?.listClass ?? 'default'] ?? 'neutral'" variant="subtle">
+              {{ dataDetail?.dictLabel }}
+            </UBadge>
+          </template>
+          <template #status>
+            <UBadge :color="ENABLED_DISABLED_COLOR[dataDetail?.status ?? ''] ?? 'neutral'" variant="subtle">
+              {{ ENABLED_DISABLED_LABEL[dataDetail?.status ?? ''] ?? dataDetail?.status }}
+            </UBadge>
+          </template>
+        </AppDescriptions>
+      </template>
+    </USlideover>
 
     <USlideover v-model:open="isTypeOpen" :title="isTypeEditing ? '编辑字典类型' : '新增字典类型'" class="w-120">
       <template #body>

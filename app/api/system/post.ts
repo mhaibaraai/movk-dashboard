@@ -37,6 +37,6 @@ export function usePostApi() {
       $api(`/v1/system/posts/${id}`, { method: 'DELETE' }),
 
     getById: (id: string) =>
-      $api<PostResp>(`/v1/system/posts/${id}`, { context: { toast: false } })
+      $api<PostResp>(`/v1/system/posts/${id}`)
   }
 }
