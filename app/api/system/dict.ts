@@ -34,7 +34,7 @@ export function useDictApi() {
     removeType: (id: string) =>
       $api(`/v1/system/dicts/types/${id}`, { method: 'DELETE' }),
     getTypeById: (id: string) =>
-      $api<DictTypeResp>(`/v1/system/dicts/types/${id}`, { context: { toast: false } }),
+      $api<DictTypeResp>(`/v1/system/dicts/types/${id}`),
 
     getDataByType: (dictType: string) =>
       $api<DictDataResp[]>('/v1/system/dicts/data', { query: { dictType }, context: { toast: false } }),
@@ -45,7 +45,7 @@ export function useDictApi() {
     removeData: (id: string) =>
       $api(`/v1/system/dicts/data/${id}`, { method: 'DELETE' }),
     getDataById: (id: string) =>
-      $api<DictDataResp>(`/v1/system/dicts/data/${id}`, { context: { toast: false } }),
+      $api<DictDataResp>(`/v1/system/dicts/data/${id}`),
 
     refreshCache: () =>
       $api('/v1/system/dicts/refresh-cache', { method: 'POST' })

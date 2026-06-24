@@ -26,6 +26,6 @@ export function useNoticeApi() {
     remove: (id: string) =>
       $api(`/v1/system/notices/${id}`, { method: 'DELETE' }),
     getById: (id: string) =>
-      $api<NoticeResp>(`/v1/system/notices/${id}`, { context: { toast: false } })
+      $api<NoticeResp>(`/v1/system/notices/${id}`)
   }
 }

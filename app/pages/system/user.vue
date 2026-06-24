@@ -4,7 +4,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import { z } from 'zod'
 import { UBadge } from '#components'
 import type { UserCreateReq, UserUpdateReq } from '~/api/system/user'
-import { USER_STATUS_COLOR, USER_STATUS_LABEL } from '~/constants/system'
+import { USER_GENDER_LABEL, USER_STATUS_COLOR, USER_STATUS_LABEL } from '~/constants/system'
 
 const {
   users, total, pending, query,
@@ -79,15 +79,15 @@ const formSchema = z.object({
     .default('ACTIVE').meta({ label: '状态' }),
   deptId: afz.enum([], {
     type: 'selectMenu',
-    controlProps: { placeholder: '请选择部门', clear: true, valueKey: 'value', items: deptOptions.value }
+    controlProps: () => ({ placeholder: '请选择部门', clear: true, valueKey: 'value', items: deptOptions.value })
   }).optional().meta({ label: '部门' }),
   roleIds: afz.array(afz.string(), {
     type: 'selectMenu',
-    controlProps: { placeholder: '请选择角色', multiple: true, valueKey: 'value', items: roleOptions.value }
+    controlProps: () => ({ placeholder: '请选择角色', multiple: true, valueKey: 'value', items: roleOptions.value })
   }).default([]).meta({ label: '角色' }),
   postIds: afz.array(afz.string(), {
     type: 'selectMenu',
-    controlProps: { placeholder: '请选择岗位', multiple: true, valueKey: 'value', items: postOptions.value }
+    controlProps: () => ({ placeholder: '请选择岗位', multiple: true, valueKey: 'value', items: postOptions.value })
   }).default([]).meta({ label: '岗位' }),
   remark: afz.string({ type: 'textarea', controlProps: { rows: 3, placeholder: '备注信息' } })
     .optional().meta({ label: '备注' })
@@ -153,6 +153,35 @@ async function onResetSubmit(event: FormSubmitEvent<{ newPassword: string }>) {
   isResetOpen.value = false
 }
 
+// 详情
+const isDetailOpen = ref(false)
+const detail = ref<UserDetailResp>()
+async function openDetail(id: string) {
+  detail.value = await getDetail(id)
+  isDetailOpen.value = true
+}
+
+const detailItems = computed(() => {
+  const d = detail.value
+  if (!d) return []
+  return [
+    { label: '用户名', key: 'username', value: d.username },
+    { label: '昵称', key: 'nickname', value: d.nickname },
+    { label: '手机号', key: 'phone', value: d.phone },
+    { label: '邮箱', key: 'email', value: d.email },
+    { label: '部门', key: 'deptName', value: d.deptName },
+    { label: '性别', key: 'gender', value: USER_GENDER_LABEL[d.gender] ?? d.gender },
+    { label: '状态', key: 'status', value: d.status },
+    { label: '角色', key: 'roleNames', value: d.roleNames.join('、') },
+    { label: '岗位', key: 'postNames', value: d.postNames.join('、') },
+    { label: '最近登录 IP', key: 'loginIp', value: d.loginIp },
+    { label: '最近登录时间', key: 'loginDate', value: d.loginDate ? formatter.format(formatter.fromISO(d.loginDate)) : undefined },
+    { label: '备注', key: 'remark', value: d.remark },
+    { label: '创建时间', key: 'createdAt', value: formatter.format(formatter.fromISO(d.createdAt)) },
+    { label: '更新时间', key: 'updatedAt', value: formatter.format(formatter.fromISO(d.updatedAt)) }
+  ]
+})
+
 const columns: DataTableColumn<UserResp>[] = [
   { type: 'selection', fixed: 'left' },
   { accessorKey: 'username', header: '用户名' },
@@ -177,9 +206,15 @@ const columns: DataTableColumn<UserResp>[] = [
   {
     type: 'actions',
     fixed: 'right',
-    size: 120,
-    maxInline: 3,
+    size: 150,
+    maxInline: 4,
     actions: [
+      {
+        key: 'detail',
+        visibility: hasPermission('system:user:query'),
+        buttonProps: { icon: 'i-lucide-eye', variant: 'ghost', size: 'xs' },
+        onClick: ({ row }) => openDetail(row.id)
+      },
       {
         key: 'edit',
         visibility: hasPermission('system:user:update'),
@@ -261,6 +296,18 @@ async function onBatchDelete() {
         </template>
       </AppDataTable>
     </div>
+
+    <USlideover v-model:open="isDetailOpen" title="用户详情" class="w-130">
+      <template #body>
+        <AppDescriptions v-if="detail" :items="detailItems">
+          <template #status>
+            <UBadge :color="USER_STATUS_COLOR[detail?.status ?? ''] ?? 'neutral'" variant="subtle">
+              {{ USER_STATUS_LABEL[detail?.status ?? ''] ?? detail?.status }}
+            </UBadge>
+          </template>
+        </AppDescriptions>
+      </template>
+    </USlideover>
 
     <USlideover v-model:open="isFormOpen" :title="isEditing ? '编辑用户' : '新增用户'" class="w-130">
       <template #body>

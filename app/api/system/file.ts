@@ -15,7 +15,7 @@ export function useFileApi() {
     removeBatch: (ids: string[]) =>
       $api('/v1/system/files/batch', { method: 'DELETE', body: ids }),
     getById: (id: string) =>
-      $api<FileResp>(`/v1/system/files/${id}`, { context: { toast: false } }),
+      $api<FileResp>(`/v1/system/files/${id}`),
     // 预览取原始二进制，跳过信封解包，用于图片内联展示
     preview: (id: string) =>
       $api<Blob>(`/v1/system/files/preview/${id}`, {

@@ -86,6 +86,28 @@ async function onSubmit(event: FormSubmitEvent<PostSchema>) {
   isOpen.value = false
 }
 
+// 详情
+const isDetailOpen = ref(false)
+const detail = ref<PostResp>()
+async function openDetail(id: string) {
+  detail.value = await getDetail(id)
+  isDetailOpen.value = true
+}
+
+const detailItems = computed(() => {
+  const d = detail.value
+  if (!d) return []
+  return [
+    { label: '岗位编码', key: 'postCode', value: d.postCode },
+    { label: '岗位名称', key: 'postName', value: d.postName },
+    { label: '排序', key: 'orderNum', value: d.orderNum },
+    { label: '状态', key: 'status', value: d.status },
+    { label: '备注', key: 'remark', value: d.remark },
+    { label: '创建时间', key: 'createdAt', value: formatter.format(formatter.fromISO(d.createdAt)) },
+    { label: '更新时间', key: 'updatedAt', value: formatter.format(formatter.fromISO(d.updatedAt)) }
+  ]
+})
+
 const columns: DataTableColumn<PostResp>[] = [
   { accessorKey: 'postCode', header: '岗位编码' },
   { accessorKey: 'postName', header: '岗位名称' },
@@ -107,8 +129,15 @@ const columns: DataTableColumn<PostResp>[] = [
   {
     type: 'actions',
     fixed: 'right',
-    size: 120,
+    size: 150,
+    maxInline: 3,
     actions: [
+      {
+        key: 'detail',
+        visibility: hasPermission('system:post:query'),
+        buttonProps: { icon: 'i-lucide-eye', variant: 'ghost', size: 'xs' },
+        onClick: ({ row }) => openDetail(row.id)
+      },
       {
         key: 'edit',
         visibility: hasPermission('system:post:update'),
@@ -160,6 +189,18 @@ const columns: DataTableColumn<PostResp>[] = [
         </UButton>
       </template>
     </AppDataTable>
+
+    <USlideover v-model:open="isDetailOpen" title="岗位详情" class="w-120">
+      <template #body>
+        <AppDescriptions v-if="detail" :items="detailItems">
+          <template #status>
+            <UBadge :color="ENABLED_DISABLED_COLOR[detail?.status ?? ''] ?? 'neutral'" variant="subtle">
+              {{ ENABLED_DISABLED_LABEL[detail?.status ?? ''] ?? detail?.status }}
+            </UBadge>
+          </template>
+        </AppDescriptions>
+      </template>
+    </USlideover>
 
     <USlideover v-model:open="isOpen" :title="isEditing ? '编辑岗位' : '新增岗位'" class="w-120">
       <template #body>

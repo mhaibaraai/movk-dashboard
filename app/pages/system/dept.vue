@@ -77,6 +77,30 @@ async function onSubmit(event: FormSubmitEvent<DeptSchema>) {
   isOpen.value = false
 }
 
+// 详情
+const isDetailOpen = ref(false)
+const detail = ref<DeptResp>()
+async function openDetail(id: string) {
+  detail.value = await getDetail(id)
+  isDetailOpen.value = true
+}
+
+const detailItems = computed(() => {
+  const d = detail.value
+  if (!d) return []
+  return [
+    { label: '部门名称', key: 'deptName', value: d.deptName },
+    { label: '部门编码', key: 'deptCode', value: d.deptCode },
+    { label: '负责人', key: 'leaderUserName', value: d.leaderUserName },
+    { label: '联系电话', key: 'phone', value: d.phone },
+    { label: '邮箱', key: 'email', value: d.email },
+    { label: '排序', key: 'orderNum', value: d.orderNum },
+    { label: '状态', key: 'status', value: d.status },
+    { label: '创建时间', key: 'createdAt', value: formatter.format(formatter.fromISO(d.createdAt)) },
+    { label: '更新时间', key: 'updatedAt', value: formatter.format(formatter.fromISO(d.updatedAt)) }
+  ]
+})
+
 const columns: DataTableColumn<DeptResp>[] = [
   { type: 'expand' },
   { accessorKey: 'deptName', header: '部门名称' },
@@ -102,7 +126,14 @@ const columns: DataTableColumn<DeptResp>[] = [
     type: 'actions',
     fixed: 'right',
     size: 150,
+    maxInline: 4,
     actions: [
+      {
+        key: 'detail',
+        visibility: hasPermission('system:dept:query'),
+        buttonProps: { icon: 'i-lucide-eye', variant: 'ghost', size: 'xs' },
+        onClick: ({ row }) => openDetail(row.id)
+      },
       {
         key: 'addChild',
         visibility: hasPermission('system:dept:create'),
@@ -143,6 +174,7 @@ const columns: DataTableColumn<DeptResp>[] = [
       :columns="columns"
       :data="tree"
       :loading="pending"
+      default-expanded
       :pagination-ui="{}"
     >
       <template #toolbar-right>
@@ -151,6 +183,18 @@ const columns: DataTableColumn<DeptResp>[] = [
         </UButton>
       </template>
     </AppDataTable>
+
+    <USlideover v-model:open="isDetailOpen" title="部门详情" class="w-120">
+      <template #body>
+        <AppDescriptions v-if="detail" :items="detailItems">
+          <template #status>
+            <UBadge :color="ENABLED_DISABLED_COLOR[detail?.status ?? ''] ?? 'neutral'" variant="subtle">
+              {{ ENABLED_DISABLED_LABEL[detail?.status ?? ''] ?? detail?.status }}
+            </UBadge>
+          </template>
+        </AppDescriptions>
+      </template>
+    </USlideover>
 
     <USlideover v-model:open="isOpen" :title="isEditing ? '编辑部门' : '新增部门'" class="w-120">
       <template #body>

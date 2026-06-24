@@ -31,6 +31,10 @@ export function useFileList() {
     query.value = { ...query.value, ...params, page: 0 }
   }
 
+  async function getDetail(id: string) {
+    return fileApi.getById(id)
+  }
+
   return {
     query: readonly(query),
     files,
@@ -40,6 +44,7 @@ export function useFileList() {
     handleDelete,
     handleDeleteBatch,
     handlePagination,
-    handleSearch
+    handleSearch,
+    getDetail
   }
 }

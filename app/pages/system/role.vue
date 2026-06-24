@@ -124,8 +124,6 @@ interface MenuTreeItem {
   label: string
   value: string
   type: MenuType
-  trailingIcon: string
-  disabled: boolean
   icon: string
 }
 const assignOpen = ref(false)
@@ -136,8 +134,6 @@ const menuTreeItems = computed(() =>
     label: node.name,
     value: node.id,
     type: node.type,
-    trailingIcon: 'i-lucide-chevron-down',
-    disabled: true,
     icon: node.icon || MENU_TYPE_ICON[node.type] || 'i-lucide-file'
   }))
 )
@@ -157,6 +153,31 @@ async function confirmAssign() {
   }
   assignOpen.value = false
 }
+
+// 详情
+const isDetailOpen = ref(false)
+const detail = ref<RoleResp>()
+async function openDetail(id: string) {
+  detail.value = await getDetail(id)
+  isDetailOpen.value = true
+}
+
+const detailItems = computed(() => {
+  const d = detail.value
+  if (!d) return []
+  return [
+    { label: '角色编码', key: 'code', value: d.code },
+    { label: '角色名称', key: 'name', value: d.name },
+    { label: '类型', key: 'roleType', value: d.roleType },
+    { label: '排序', key: 'roleSort', value: d.roleSort },
+    { label: '数据范围', key: 'dataScope', value: dataScopeItems.find(i => i.value === d.dataScope)?.label ?? d.dataScope },
+    { label: '自定义部门', key: 'dataScopeDeptNames', value: d.dataScopeDeptNames.join('、') },
+    { label: '状态', key: 'status', value: d.status },
+    { label: '备注', key: 'remark', value: d.remark },
+    { label: '创建时间', key: 'createdAt', value: formatter.format(formatter.fromISO(d.createdAt)) },
+    { label: '更新时间', key: 'updatedAt', value: formatter.format(formatter.fromISO(d.updatedAt)) }
+  ]
+})
 
 const columns: DataTableColumn<RoleResp>[] = [
   { type: 'selection', fixed: 'left', size: 48 },
@@ -190,7 +211,14 @@ const columns: DataTableColumn<RoleResp>[] = [
     type: 'actions',
     fixed: 'right',
     size: 150,
+    maxInline: 4,
     actions: [
+      {
+        key: 'detail',
+        visibility: hasPermission('system:role:query'),
+        buttonProps: { icon: 'i-lucide-eye', variant: 'ghost', size: 'xs' },
+        onClick: ({ row }) => openDetail(row.id)
+      },
       {
         key: 'edit',
         visibility: hasPermission('system:role:update'),
@@ -260,6 +288,23 @@ const columns: DataTableColumn<RoleResp>[] = [
       </template>
     </AppDataTable>
 
+    <USlideover v-model:open="isDetailOpen" title="角色详情" class="w-120">
+      <template #body>
+        <AppDescriptions v-if="detail" :items="detailItems">
+          <template #roleType>
+            <UBadge :color="detail?.roleType === 'BUILT_IN' ? 'primary' : 'neutral'" variant="subtle">
+              {{ detail?.roleType === 'BUILT_IN' ? '内置' : '自定义' }}
+            </UBadge>
+          </template>
+          <template #status>
+            <UBadge :color="ENABLED_DISABLED_COLOR[detail?.status ?? ''] ?? 'neutral'" variant="subtle">
+              {{ ENABLED_DISABLED_LABEL[detail?.status ?? ''] ?? detail?.status }}
+            </UBadge>
+          </template>
+        </AppDescriptions>
+      </template>
+    </USlideover>
+
     <USlideover v-model:open="isOpen" :title="isEditing ? '编辑角色' : '新增角色'" class="w-120">
       <template #body>
         <MAutoForm
@@ -287,13 +332,14 @@ const columns: DataTableColumn<RoleResp>[] = [
         <MTree
           v-model="assignSelected"
           :items="menuTreeItems"
+          toolbar
           searchable
           checkable
-          :default-expanded="1"
-          expanded-icon="i-lucide-book-open"
-          collapsed-icon="i-lucide-book"
-          color="warning"
-          class="flex-1 overflow-auto"
+          default-expanded
+          :ui="{
+            container: 'h-full overflow-y-hidden',
+            root: 'flex-1 overflow-y-auto'
+          }"
         />
       </template>
       <template #footer>

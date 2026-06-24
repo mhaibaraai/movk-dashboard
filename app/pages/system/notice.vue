@@ -100,6 +100,28 @@ async function onBatchDelete() {
   rowSelectionKeys.value = []
 }
 
+// 详情
+const isDetailOpen = ref(false)
+const detail = ref<NoticeResp>()
+async function openDetail(id: string) {
+  detail.value = await getDetail(id)
+  isDetailOpen.value = true
+}
+
+const detailItems = computed(() => {
+  const d = detail.value
+  if (!d) return []
+  return [
+    { label: '公告标题', key: 'noticeTitle', value: d.noticeTitle },
+    { label: '类型', key: 'noticeType', value: d.noticeType },
+    { label: '状态', key: 'status', value: d.status },
+    { label: '创建人', key: 'creator', value: d.creator },
+    { label: '内容', key: 'noticeContent', value: d.noticeContent },
+    { label: '创建时间', key: 'createdAt', value: formatter.format(formatter.fromISO(d.createdAt)) },
+    { label: '更新时间', key: 'updatedAt', value: formatter.format(formatter.fromISO(d.updatedAt)) }
+  ]
+})
+
 const columns: DataTableColumn<NoticeResp>[] = [
   { type: 'selection', fixed: 'left', size: 48 },
   { accessorKey: 'noticeTitle', header: '公告标题', tooltip: true, size: 280 },
@@ -129,8 +151,15 @@ const columns: DataTableColumn<NoticeResp>[] = [
   {
     type: 'actions',
     fixed: 'right',
-    size: 120,
+    size: 150,
+    maxInline: 3,
     actions: [
+      {
+        key: 'detail',
+        visibility: hasPermission('system:notice:query'),
+        buttonProps: { icon: 'i-lucide-eye', variant: 'ghost', size: 'xs' },
+        onClick: ({ row }) => openDetail(row.id)
+      },
       {
         key: 'edit',
         visibility: hasPermission('system:notice:update'),
@@ -192,6 +221,23 @@ const columns: DataTableColumn<NoticeResp>[] = [
         </UButton>
       </template>
     </AppDataTable>
+
+    <USlideover v-model:open="isDetailOpen" title="公告详情" class="w-150">
+      <template #body>
+        <AppDescriptions v-if="detail" :items="detailItems">
+          <template #noticeType>
+            <UBadge :color="NOTICE_TYPE_COLOR[detail?.noticeType ?? ''] ?? 'neutral'" variant="subtle">
+              {{ NOTICE_TYPE_LABEL[detail?.noticeType ?? ''] ?? detail?.noticeType }}
+            </UBadge>
+          </template>
+          <template #status>
+            <UBadge :color="ENABLED_DISABLED_COLOR[detail?.status ?? ''] ?? 'neutral'" variant="subtle">
+              {{ ENABLED_DISABLED_LABEL[detail?.status ?? ''] ?? detail?.status }}
+            </UBadge>
+          </template>
+        </AppDescriptions>
+      </template>
+    </USlideover>
 
     <USlideover v-model:open="isOpen" :title="isEditing ? '编辑公告' : '新增公告'" class="w-150">
       <template #body>

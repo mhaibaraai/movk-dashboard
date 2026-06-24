@@ -13,6 +13,7 @@ import {
 const { tree, pending, handleCreate, handleUpdate, handleDelete, getDetail } = useMenuTree()
 const { afz, controls } = useAutoForm({ iconPicker: { component: IconPicker } })
 const { hasPermission } = usePermission()
+const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle: 'medium', timeStyle: 'medium' } })
 
 const statusItems = [{ label: '启用', value: 'ENABLED' }, { label: '禁用', value: 'DISABLED' }]
 const typeItems = [
@@ -99,6 +100,35 @@ async function onSubmit(event: FormSubmitEvent<MenuSchema>) {
   isOpen.value = false
 }
 
+// 详情
+const isDetailOpen = ref(false)
+const detail = ref<MenuResp>()
+async function openDetail(id: string) {
+  detail.value = await getDetail(id)
+  isDetailOpen.value = true
+}
+
+const detailItems = computed(() => {
+  const d = detail.value
+  if (!d) return []
+  return [
+    { label: '菜单名称', key: 'name', value: d.name },
+    { label: '类型', key: 'type', value: d.type },
+    { label: '图标', key: 'icon', value: d.icon },
+    { label: '路由地址', key: 'path', value: d.path },
+    { label: '组件路径', key: 'component', value: d.component },
+    { label: '权限标识', key: 'permissionCode', value: d.permissionCode },
+    { label: '排序', key: 'orderNum', value: d.orderNum },
+    { label: '是否外链', key: 'isFrame', value: d.isFrame ? '是' : '否' },
+    { label: '是否缓存', key: 'isCache', value: d.isCache ? '是' : '否' },
+    { label: '是否显示', key: 'visible', value: d.visible ? '是' : '否' },
+    { label: '状态', key: 'status', value: d.status },
+    { label: '备注', key: 'remark', value: d.remark },
+    { label: '创建时间', key: 'createdAt', value: formatter.format(formatter.fromISO(d.createdAt)) },
+    { label: '更新时间', key: 'updatedAt', value: formatter.format(formatter.fromISO(d.updatedAt)) }
+  ]
+})
+
 const columns: DataTableColumn<MenuResp>[] = [
   { type: 'expand' },
   {
@@ -143,7 +173,14 @@ const columns: DataTableColumn<MenuResp>[] = [
     type: 'actions',
     fixed: 'right',
     size: 150,
+    maxInline: 4,
     actions: [
+      {
+        key: 'detail',
+        visibility: hasPermission('system:menu:query'),
+        buttonProps: { icon: 'i-lucide-eye', variant: 'ghost', size: 'xs' },
+        onClick: ({ row }) => openDetail(row.id)
+      },
       {
         key: 'addChild',
         visibility: hasPermission('system:menu:create'),
@@ -184,6 +221,7 @@ const columns: DataTableColumn<MenuResp>[] = [
       :columns="columns"
       :data="tree"
       :loading="pending"
+      :default-expanded="1"
       :pagination-ui="{}"
     >
       <template #toolbar-right>
@@ -192,6 +230,30 @@ const columns: DataTableColumn<MenuResp>[] = [
         </UButton>
       </template>
     </AppDataTable>
+
+    <USlideover v-model:open="isDetailOpen" title="菜单详情" class="w-120">
+      <template #body>
+        <AppDescriptions v-if="detail" :items="detailItems">
+          <template #type>
+            <UBadge :color="MENU_TYPE_COLOR[detail?.type ?? ''] ?? 'neutral'" variant="subtle">
+              {{ MENU_TYPE_LABEL[detail?.type ?? ''] ?? detail?.type }}
+            </UBadge>
+          </template>
+          <template #icon>
+            <span v-if="detail?.icon" class="flex items-center gap-2">
+              <UIcon :name="normalizeIconName(detail.icon)" />
+              {{ detail.icon }}
+            </span>
+            <span v-else>-</span>
+          </template>
+          <template #status>
+            <UBadge :color="ENABLED_DISABLED_COLOR[detail?.status ?? ''] ?? 'neutral'" variant="subtle">
+              {{ ENABLED_DISABLED_LABEL[detail?.status ?? ''] ?? detail?.status }}
+            </UBadge>
+          </template>
+        </AppDescriptions>
+      </template>
+    </USlideover>
 
     <USlideover v-model:open="isOpen" :title="isEditing ? '编辑菜单' : '新增菜单'" class="w-120">
       <template #body>

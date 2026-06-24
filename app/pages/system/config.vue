@@ -97,6 +97,28 @@ async function onSubmit(event: FormSubmitEvent<ConfigSchema>) {
   isOpen.value = false
 }
 
+// 详情
+const isDetailOpen = ref(false)
+const detail = ref<ConfigResp>()
+async function openDetail(id: string) {
+  detail.value = await getDetail(id)
+  isDetailOpen.value = true
+}
+
+const detailItems = computed(() => {
+  const d = detail.value
+  if (!d) return []
+  return [
+    { label: '配置名称', key: 'configName', value: d.configName },
+    { label: '配置键名', key: 'configKey', value: d.configKey },
+    { label: '配置值', key: 'configValue', value: d.configValue },
+    { label: '配置类型', key: 'configType', value: d.configType },
+    { label: '备注', key: 'remark', value: d.remark },
+    { label: '创建时间', key: 'createdAt', value: formatter.format(formatter.fromISO(d.createdAt)) },
+    { label: '更新时间', key: 'updatedAt', value: formatter.format(formatter.fromISO(d.updatedAt)) }
+  ]
+})
+
 const columns: DataTableColumn<ConfigResp>[] = [
   { accessorKey: 'configName', header: '配置名称', sortable: true },
   { accessorKey: 'configKey', header: '配置键名', sortable: true },
@@ -121,7 +143,14 @@ const columns: DataTableColumn<ConfigResp>[] = [
     type: 'actions',
     fixed: 'right',
     size: 120,
+    maxInline: 3,
     actions: [
+      {
+        key: 'detail',
+        visibility: hasPermission('system:config:query'),
+        buttonProps: { icon: 'i-lucide-eye', variant: 'ghost', size: 'xs' },
+        onClick: ({ row }) => openDetail(row.id)
+      },
       {
         key: 'edit',
         visibility: hasPermission('system:config:update'),
@@ -181,6 +210,18 @@ const columns: DataTableColumn<ConfigResp>[] = [
         </UButton>
       </template>
     </AppDataTable>
+
+    <USlideover v-model:open="isDetailOpen" title="配置详情" class="w-120">
+      <template #body>
+        <AppDescriptions v-if="detail" :items="detailItems">
+          <template #configType>
+            <UBadge :color="CONFIG_TYPE_COLOR[detail?.configType ?? ''] ?? 'neutral'" variant="subtle">
+              {{ CONFIG_TYPE_LABEL[detail?.configType ?? ''] ?? detail?.configType }}
+            </UBadge>
+          </template>
+        </AppDescriptions>
+      </template>
+    </USlideover>
 
     <USlideover v-model:open="isOpen" :title="isEditing ? '编辑配置' : '新增配置'" class="w-120">
       <template #body>

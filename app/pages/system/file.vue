@@ -7,7 +7,7 @@ import { useFileApi } from '~/api/system/file'
 
 const {
   files, total, pending, query,
-  handleDelete, handleDeleteBatch, handlePagination, handleSearch, refresh
+  handleDelete, handleDeleteBatch, handlePagination, handleSearch, refresh, getDetail
 } = useFileList()
 const fileApi = useFileApi()
 const { afz } = useAutoForm()
@@ -87,6 +87,33 @@ async function onBatchDelete() {
   rowSelectionKeys.value = []
 }
 
+// 详情
+const isDetailOpen = ref(false)
+const detail = ref<FileResp>()
+async function openDetail(id: string) {
+  detail.value = await getDetail(id)
+  isDetailOpen.value = true
+}
+
+const detailItems = computed(() => {
+  const d = detail.value
+  if (!d) return []
+  return [
+    { label: '文件名', key: 'originalName', value: d.originalName },
+    { label: '存储名', key: 'storageName', value: d.storageName },
+    { label: '扩展名', key: 'extension', value: d.extension },
+    { label: '类型', key: 'contentType', value: d.contentType },
+    { label: '大小', key: 'sizeFormatted', value: d.sizeFormatted },
+    { label: '分类', key: 'category', value: d.category },
+    { label: '存储类型', key: 'storageType', value: d.storageType },
+    { label: 'MD5', key: 'md5', value: d.md5 },
+    { label: '路径', key: 'path', value: d.path },
+    { label: '下载地址', key: 'downloadUrl', value: d.downloadUrl },
+    { label: '备注', key: 'remark', value: d.remark },
+    { label: '创建时间', key: 'createdAt', value: formatter.format(formatter.fromISO(d.createdAt)) }
+  ]
+})
+
 const columns: DataTableColumn<FileResp>[] = [
   { type: 'selection', fixed: 'left', size: 48 },
   { accessorKey: 'originalName', header: '文件名', tooltip: true, size: 240 },
@@ -105,8 +132,15 @@ const columns: DataTableColumn<FileResp>[] = [
   {
     type: 'actions',
     fixed: 'right',
-    size: 140,
+    size: 150,
+    maxInline: 4,
     actions: [
+      {
+        key: 'detail',
+        visibility: hasPermission('system:file:query'),
+        buttonProps: { icon: 'i-lucide-info', variant: 'ghost', size: 'xs' },
+        onClick: ({ row }) => openDetail(row.id)
+      },
       {
         key: 'preview',
         buttonProps: { icon: 'i-lucide-eye', variant: 'ghost', size: 'xs' },
@@ -173,6 +207,12 @@ const columns: DataTableColumn<FileResp>[] = [
         </UButton>
       </template>
     </AppDataTable>
+
+    <USlideover v-model:open="isDetailOpen" title="文件详情" class="w-130">
+      <template #body>
+        <AppDescriptions v-if="detail" :items="detailItems" />
+      </template>
+    </USlideover>
 
     <UModal v-model:open="isUploadOpen" title="上传文件">
       <template #body>
