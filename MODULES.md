@@ -238,7 +238,7 @@
 
 - 列：selection（左） · originalName（tooltip） · contentType（badge） · category · sizeFormatted · createdAt · actions（右：预览 / 下载 / 删除）。
 - 搜索（`:cols="4"`，服务端 query）：originalName、category、contentType。
-- 上传：工具条「上传」按钮 → `UModal` + `UFileUpload`（或 `MAutoForm` 的 `afz.file`），支持单 / 批量，成功后 `refresh`。
+- 上传：工具条「上传」按钮 → `UModal` + `UInput`（分类，自由文本）+ `UFileUpload`，走批量端点 `upload/batch`（`useUploadWithProgress`），`category` 作为 query 参数；上传中可取消（`abort`），批量部分失败给「成功 X，失败 Y」提示，成功后 `refresh`。
 - 特有动作：预览（图片 / 文本 inline，走 `preview/{id}`）；下载走 `download/{id}` 或 `downloadUrl`；批量删除走 `files/batch`。
 - 边界：类型 / 大小在控件层校验；预览大文件回退下载。
 

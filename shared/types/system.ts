@@ -160,6 +160,16 @@ export interface FileResp {
   remark: string | null
 }
 
+export interface FileUploadResp {
+  id: string
+  originalName: string
+  storageName: string
+  size: number
+  contentType: string
+  downloadUrl: string
+  md5: string
+}
+
 // ─── 系统配置 ───────────────────────────────────────
 
 export interface ConfigResp {

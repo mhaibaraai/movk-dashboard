@@ -1,3 +1,5 @@
+import { withQuery } from 'ufo'
+
 export interface FileListQuery {
   originalName?: string
   category?: string
@@ -10,6 +12,9 @@ export function useFileApi() {
   const { $api } = useNuxtApp()
 
   return {
+    // 批量上传走 useUploadWithProgress（需 URL），category 作为 query 参数
+    uploadBatchUrl: (category?: string) =>
+      withQuery('/v1/system/files/upload/batch', category ? { category } : {}),
     remove: (id: string) =>
       $api(`/v1/system/files/${id}`, { method: 'DELETE' }),
     removeBatch: (ids: string[]) =>
@@ -20,7 +25,7 @@ export function useFileApi() {
     preview: (id: string) =>
       $api<Blob>(`/v1/system/files/preview/${id}`, {
         responseType: 'blob',
-        context: { toast: false, skipUnwrap: true }
+        context: { toast: false, skipUnwrap: true, skipBusinessCheck: true }
       })
   }
 }

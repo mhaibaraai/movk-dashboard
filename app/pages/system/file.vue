@@ -34,21 +34,31 @@ function onSearch(event: FormSubmitEvent<FileSearch>) {
 // 上传
 const isUploadOpen = ref(false)
 const selectedFiles = ref<File[] | null>(null)
-const { status: uploadStatus, progress: uploadProgress, upload } = useUploadWithProgress()
+const uploadCategory = ref('')
+const { status: uploadStatus, progress: uploadProgress, upload, abort } = useUploadWithProgress<FileUploadResp[]>()
 
 function openUpload() {
   selectedFiles.value = null
+  uploadCategory.value = ''
   isUploadOpen.value = true
 }
 
 async function onUpload() {
-  if (!selectedFiles.value?.length) return
-  for (const file of selectedFiles.value) {
-    const { error } = await upload('/v1/system/files/upload', file, { fieldName: 'file' })
-    if (error) return
+  const files = selectedFiles.value
+  if (!files?.length) return
+  const { error, data } = await upload(
+    fileApi.uploadBatchUrl(uploadCategory.value || undefined),
+    files,
+    { fieldName: 'files' }
+  )
+  if (error) return
+  const ok = data?.length ?? 0
+  const failed = files.length - ok
+  if (failed > 0) {
+    toast.add({ title: `上传完成：成功 ${ok}，失败 ${failed}`, color: 'warning' })
   }
-  isUploadOpen.value = false
   await refresh()
+  isUploadOpen.value = false
 }
 
 // 下载
@@ -70,8 +80,7 @@ async function onPreview(row: FileResp) {
     previewName.value = row.originalName
     isPreviewOpen.value = true
   } else {
-    onDownload(row)
-    toast.add({ title: '该文件类型不支持预览，已开始下载', color: 'info' })
+    toast.add({ title: '该文件类型不支持预览，请下载后查看', color: 'info' })
   }
 }
 
@@ -217,13 +226,17 @@ const columns: DataTableColumn<FileResp>[] = [
     <UModal v-model:open="isUploadOpen" title="上传文件">
       <template #body>
         <div class="flex flex-col gap-4">
+          <UInput v-model="uploadCategory" icon="i-lucide-folder" placeholder="文件分类（可选）" />
           <UFileUpload v-model="selectedFiles" multiple :description="'支持多文件上传'" />
           <UProgress v-if="uploadStatus === 'pending'" :model-value="uploadProgress ?? undefined" :max="100" />
         </div>
       </template>
       <template #footer>
         <div class="flex w-full justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="isUploadOpen = false">
+          <UButton v-if="uploadStatus === 'pending'" variant="ghost" color="error" @click="abort">
+            取消上传
+          </UButton>
+          <UButton v-else variant="ghost" color="neutral" @click="isUploadOpen = false">
             取消
           </UButton>
           <UButton
@@ -237,9 +250,9 @@ const columns: DataTableColumn<FileResp>[] = [
       </template>
     </UModal>
 
-    <UModal v-model:open="isPreviewOpen" :title="previewName">
+    <UModal v-model:open="isPreviewOpen" :title="previewName" :dismissible="false">
       <template #body>
-        <img v-if="previewUrl" :src="previewUrl" :alt="previewName" class="mx-auto max-h-[70vh] object-contain">
+        <NuxtImg v-if="previewUrl" :src="previewUrl" :alt="previewName" class="mx-auto max-h-[70vh] object-contain" />
       </template>
     </UModal>
   </div>
