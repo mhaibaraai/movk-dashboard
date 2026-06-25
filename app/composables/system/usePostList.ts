@@ -13,7 +13,6 @@ export function usePostList() {
     '/v1/system/posts',
     {
       query,
-      watch: [query],
       toast: false
     }
   )

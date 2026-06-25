@@ -178,6 +178,7 @@ const columns: DataTableColumn<UserResp>[] = [
   { type: 'selection', fixed: 'left' },
   { accessorKey: 'username', header: '用户名' },
   { accessorKey: 'nickname', header: '昵称' },
+  { accessorKey: 'gender', header: '性别', cell: ({ row }) => sexDict.getLabel(row.original.gender) },
   { accessorKey: 'phone', header: '手机号' },
   { accessorKey: 'email', header: '邮箱' },
   { accessorKey: 'deptName', header: '部门' },

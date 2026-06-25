@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import { UBadge } from '#components'
 import type { DataTableColumn } from '@movk/nuxt'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { z } from 'zod'
-import { UBadge } from '#components'
-import { LOG_STATUS_QUERY, DICT_TYPE } from '~/constants/dict'
+import { DICT_TYPE, LOG_STATUS_QUERY } from '~/constants/dict'
 
 const { logs, total, pending, query, handleClean, getDetail, handlePagination, handleSearch } = useOperateLogList()
 const { afz } = useAutoForm()

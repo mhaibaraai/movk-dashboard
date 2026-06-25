@@ -18,12 +18,12 @@ const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle
 
 const statusDict = useDict(DICT_TYPE.normalDisable)
 const listClassItems = [
-  { label: '默认', value: 'neutral' },
-  { label: '主要', value: 'primary' },
-  { label: '成功', value: 'success' },
-  { label: '信息', value: 'info' },
-  { label: '警告', value: 'warning' },
-  { label: '危险', value: 'error' }
+  { label: '默认', value: 'neutral', chip: { color: 'neutral' } },
+  { label: '主要', value: 'primary', chip: { color: 'primary' } },
+  { label: '成功', value: 'success', chip: { color: 'success' } },
+  { label: '信息', value: 'info', chip: { color: 'info' } },
+  { label: '警告', value: 'warning', chip: { color: 'warning' } },
+  { label: '危险', value: 'error', chip: { color: 'error' } }
 ]
 
 // 类型搜索（客户端过滤）
@@ -36,7 +36,7 @@ const typeSearchState = ref<Partial<TypeSearch>>({})
 
 const filteredTypes = computed(() => {
   const { dictName, dictType } = typeSearchState.value
-  return dictTypes.value.filter((t) => {
+  return dictTypes.value?.filter((t) => {
     if (dictName && !t.dictName.toLowerCase().includes(dictName.toLowerCase())) return false
     if (dictType && !t.dictType.toLowerCase().includes(dictType.toLowerCase())) return false
     return true
