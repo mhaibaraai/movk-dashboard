@@ -20,17 +20,28 @@ const searchSchema = afz.object({
     type: 'selectMenu',
     controlProps: () => ({ icon: 'i-lucide-toggle-left', placeholder: '状态', clear: true, valueKey: 'value', items: statusDict.options.value })
   }).optional(),
-  startTime: afz.calendarDate({ controlProps: { labelFormat: 'iso', placeholder: '开始日期' } })
-    .transform(d => formatter.toISO(d)).optional(),
-  endTime: afz.calendarDate({ controlProps: { labelFormat: 'iso', placeholder: '结束日期' } })
-    .transform(d => formatter.toISO(d)).optional()
+  dateRange: afz.calendarDate({
+    controlProps: {
+      range: true,
+      labelFormat: 'iso',
+      valueFormat: 'iso',
+      icon: 'i-lucide-calendar',
+      placeholder: '日期范围',
+      presets: 'default'
+    }
+  }).optional()
 })
 type LogSearch = z.output<typeof searchSchema>
 const searchState = ref<Partial<LogSearch>>({})
 
 function onSearch(event: FormSubmitEvent<LogSearch>) {
-  const { status, ...rest } = event.data
-  handleSearch({ ...rest, status: status ? LOG_STATUS_QUERY[status] : undefined })
+  const { status, dateRange, ...rest } = event.data
+  handleSearch({
+    ...rest,
+    status: status ? LOG_STATUS_QUERY[status] : undefined,
+    startTime: dateRange?.start ?? undefined,
+    endTime: dateRange?.end ?? undefined
+  })
 }
 function onSearchReset() {
   handleSearch({ module: undefined, operation: undefined, status: undefined, startTime: undefined, endTime: undefined })
@@ -126,7 +137,7 @@ const detailFields: { label: string, key: keyof OperateLogResp }[] = [
       v-model="searchState"
       :schema="searchSchema"
       :global-meta="{ label: '' }"
-      :cols="6"
+      :cols="5"
       @submit="onSearch"
       @reset="onSearchReset"
     />
