@@ -1,8 +1,8 @@
 export interface NoticeCreateReq {
   noticeTitle: string
-  noticeType: 'NOTICE' | 'ANNOUNCEMENT'
+  noticeType: string
   noticeContent?: string
-  status?: 'ENABLED' | 'DISABLED'
+  status?: string
 }
 
 export type NoticeUpdateReq = NoticeCreateReq

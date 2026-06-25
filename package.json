@@ -20,7 +20,7 @@
     "@iconify-json/lucide": "^1.2.114",
     "@iconify-json/simple-icons": "^1.2.87",
     "@movk/core": "^1.3.1",
-    "@movk/nuxt": "https://pkg.pr.new/@movk/nuxt@d0851e3",
+    "@movk/nuxt": "https://pkg.pr.new/@movk/nuxt@c7cb08a",
     "@nuxt/ui": "^4.9.0",
     "@vueuse/nuxt": "^14.3.0",
     "cookie-es": "^3.1.1",

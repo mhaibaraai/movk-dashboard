@@ -4,9 +4,9 @@ export interface UserCreateReq {
   nickname?: string
   email?: string
   phone?: string
-  gender?: 'UNKNOWN' | 'MALE' | 'FEMALE'
+  gender?: string
   avatar?: string
-  status?: 'ACTIVE' | 'DISABLED' | 'LOCKED' | 'DELETED'
+  status?: string
   deptId?: string
   roleIds?: string[]
   postIds?: string[]
@@ -17,9 +17,9 @@ export interface UserUpdateReq {
   nickname?: string
   email?: string
   phone?: string
-  gender?: 'UNKNOWN' | 'MALE' | 'FEMALE'
+  gender?: string
   avatar?: string
-  status?: 'ACTIVE' | 'DISABLED' | 'LOCKED' | 'DELETED'
+  status?: string
   deptId?: string
   roleIds?: string[]
   postIds?: string[]
@@ -36,7 +36,7 @@ export interface UserListQuery {
   nickname?: string
   phone?: string
   email?: string
-  status?: 'ACTIVE' | 'DISABLED' | 'LOCKED' | 'DELETED'
+  status?: string
   deptId?: string
   createdAtStart?: string
   createdAtEnd?: string

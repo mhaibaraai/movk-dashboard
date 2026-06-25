@@ -52,7 +52,7 @@ export function usePostApi() {
 
 ### Composable 层（`app/composables/system/use<X>List.ts`）
 
-以 `useUserList` 为模板：`useApiFetch<PageResp<T>>(url, { query, watch: [query], toast: false })`，返回 `items / total / pending / refresh / query(readonly) / handleCreate/Update/Delete/DeleteBatch / handleSearch / handlePagination`。
+以 `useUserList` 为模板：`useApiFetch<PageResp<T>>(url, { query, toast: false })`，返回 `items / total / pending / refresh / query(readonly) / handleCreate/Update/Delete/DeleteBatch / handleSearch / handlePagination`。
 
 ```ts
 function handleSearch(params: Partial<XListQuery>) {

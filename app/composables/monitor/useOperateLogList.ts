@@ -7,7 +7,6 @@ export function useOperateLogList() {
 
   const { data, pending, refresh } = useApiFetch<PageResp<OperateLogResp>>('/v1/monitor/operate-logs', {
     query,
-    watch: [query],
     toast: false
   })
 

@@ -2,7 +2,7 @@ export interface ConfigCreateReq {
   configName: string
   configKey: string
   configValue?: string
-  configType?: ConfigType
+  configType?: string
   remark?: string
 }
 
@@ -10,7 +10,7 @@ export interface ConfigUpdateReq {
   configName: string
   configKey: string
   configValue?: string
-  configType?: ConfigType
+  configType?: string
   remark?: string
 }
 

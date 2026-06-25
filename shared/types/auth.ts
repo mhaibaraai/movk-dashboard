@@ -19,9 +19,9 @@ export interface AuthMePayload {
   nickname: string | null
   email: string | null
   phone: string | null
-  gender?: 'UNKNOWN' | 'MALE' | 'FEMALE'
+  gender?: string
   avatar?: string | null
-  status?: 'ACTIVE' | 'DISABLED' | 'LOCKED' | 'DELETED'
+  status?: string
   deptId?: string | null
   deptName?: string | null
   loginIp?: string | null

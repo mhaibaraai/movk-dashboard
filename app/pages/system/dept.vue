@@ -5,7 +5,7 @@ import type { z } from 'zod'
 import { Tree } from '@movk/core'
 import { UBadge } from '#components'
 import type { DeptCreateReq, DeptUpdateReq } from '~/api/system/dept'
-import { ENABLED_DISABLED_COLOR, ENABLED_DISABLED_LABEL } from '~/constants/system'
+import { DICT_TYPE } from '~/constants/dict'
 
 const { tree, pending, handleCreate, handleUpdate, handleDelete, getDetail } = useDeptTree()
 const { userOptions } = useUserOptions()
@@ -13,7 +13,7 @@ const { afz } = useAutoForm()
 const { hasPermission } = usePermission()
 const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle: 'medium', timeStyle: 'medium' } })
 
-const statusItems = [{ label: '启用', value: 'ENABLED' }, { label: '禁用', value: 'DISABLED' }]
+const statusDict = useDict(DICT_TYPE.normalDisable)
 const deptOptions = computed(() => Tree.toList(tree.value).map(d => ({ label: d.deptName, value: d.id })))
 
 const isOpen = ref(false)
@@ -38,16 +38,17 @@ const schema = afz.object({
   }).optional().meta({ label: '负责人' }),
   phone: afz.string({ controlProps: { placeholder: '请输入联系电话' } }).optional().meta({ label: '联系电话' }),
   email: afz.email({ type: 'string', controlProps: { placeholder: '请输入邮箱' } }).optional().meta({ label: '邮箱' }),
-  status: afz.enum(['ENABLED', 'DISABLED'], {
-    controlProps: { valueKey: 'value', items: statusItems }
-  }).default('ENABLED').meta({ label: '状态' })
+  status: afz.enum([], {
+    type: 'selectMenu',
+    controlProps: () => ({ valueKey: 'value', items: statusDict.options.value })
+  }).meta({ label: '状态' })
 })
 type DeptSchema = z.output<typeof schema>
 
 function openCreate(parentId?: string) {
   isEditing.value = false
   editingId.value = null
-  state.value = { status: 'ENABLED', orderNum: 0, parentId }
+  state.value = { status: statusDict.defaultValue.value, orderNum: 0, parentId }
   isOpen.value = true
 }
 
@@ -112,8 +113,8 @@ const columns: DataTableColumn<DeptResp>[] = [
     header: '状态',
     cell: ({ row }) => h(
       UBadge,
-      { color: ENABLED_DISABLED_COLOR[row.original.status] ?? 'neutral', variant: 'subtle' },
-      () => ENABLED_DISABLED_LABEL[row.original.status] ?? row.original.status
+      { color: statusDict.getColor(row.original.status), variant: 'subtle' },
+      () => statusDict.getLabel(row.original.status)
     )
   },
   {
@@ -175,7 +176,7 @@ const columns: DataTableColumn<DeptResp>[] = [
       :data="tree"
       :loading="pending"
       default-expanded
-      :pagination-ui="{}"
+      :pagination-ui="{ show: false }"
     >
       <template #toolbar-right>
         <UButton v-permission="'system:dept:create'" icon="i-lucide-plus" @click="openCreate()">
@@ -188,8 +189,8 @@ const columns: DataTableColumn<DeptResp>[] = [
       <template #body>
         <AppDescriptions v-if="detail" :items="detailItems">
           <template #status>
-            <UBadge :color="ENABLED_DISABLED_COLOR[detail?.status ?? ''] ?? 'neutral'" variant="subtle">
-              {{ ENABLED_DISABLED_LABEL[detail?.status ?? ''] ?? detail?.status }}
+            <UBadge :color="statusDict.getColor(detail?.status)" variant="subtle">
+              {{ statusDict.getLabel(detail?.status) }}
             </UBadge>
           </template>
         </AppDescriptions>

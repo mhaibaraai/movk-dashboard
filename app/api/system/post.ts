@@ -2,21 +2,21 @@ export interface PostCreateReq {
   postCode: string
   postName: string
   orderNum?: number
-  status?: 'ENABLED' | 'DISABLED'
+  status?: string
   remark?: string
 }
 
 export interface PostUpdateReq {
   postName: string
   orderNum?: number
-  status?: 'ENABLED' | 'DISABLED'
+  status?: string
   remark?: string
 }
 
 export interface PostListQuery {
   postCode?: string
   postName?: string
-  status?: 'ENABLED' | 'DISABLED'
+  status?: string
   createdAtStart?: string
   createdAtEnd?: string
   page?: number

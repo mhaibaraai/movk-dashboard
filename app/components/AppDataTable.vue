@@ -4,11 +4,16 @@ import type { DropdownMenuItem } from '@nuxt/ui'
 
 defineOptions({ inheritAttrs: false })
 
-const props = withDefaults(defineProps<DataTableProps<T>>(), {
+interface AppDataTableProps extends DataTableProps<T> {
+  showColumnSettings?: boolean
+}
+
+const props = withDefaults(defineProps<AppDataTableProps>(), {
   resizable: true,
   stripe: true,
   sticky: true,
   density: 'normal',
+  showColumnSettings: true,
   paginationUi: () => ({ pageSizes: [5, 10, 20, 50] })
 })
 
@@ -57,10 +62,10 @@ defineExpose({ tableApi })
       <div class="flex items-center gap-2">
         <slot name="toolbar-left" />
       </div>
-      <div class="flex items-center gap-2">
+      <div v-if="slots['toolbar-right'] || (columnItems.length && showColumnSettings)" class="flex items-center gap-2">
         <slot name="toolbar-right" />
         <UDropdownMenu
-          v-if="columnItems.length"
+          v-if="columnItems.length && showColumnSettings"
           :items="columnItems"
           :content="{ align: 'end' }"
         >

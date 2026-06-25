@@ -8,7 +8,6 @@ export function useFileList() {
 
   const { data, pending, refresh } = useApiFetch<PageResp<FileResp>>('/v1/system/files', {
     query,
-    watch: [query],
     toast: false
   })
 

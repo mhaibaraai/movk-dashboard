@@ -7,7 +7,6 @@ export function useOnlineUserList() {
 
   const { data, pending, refresh } = useApiFetch<PageResp<OnlineUserResp>>('/v1/monitor/online-users', {
     query,
-    watch: [query],
     toast: false
   })
 

@@ -7,7 +7,6 @@ export function useLoginLogList() {
 
   const { data, pending, refresh } = useApiFetch<PageResp<LoginLogResp>>('/v1/monitor/login-logs', {
     query,
-    watch: [query],
     toast: false
   })
 

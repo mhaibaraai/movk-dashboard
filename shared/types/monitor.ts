@@ -1,7 +1,5 @@
 // ─── 操作日志 ───────────────────────────────────────
 
-export type LogStatus = 'SUCCESS' | 'FAILURE'
-
 export interface OperateLogResp {
   id: number
   traceId: string | null
@@ -18,7 +16,7 @@ export interface OperateLogResp {
   userIp: string | null
   userAgent: string | null
   operationTime: number | null
-  status: LogStatus
+  status: string
   errorMsg: string | null
   createdAt: string
 }
@@ -36,19 +34,17 @@ export interface OperateLogListQuery {
 
 // ─── 登录日志 ───────────────────────────────────────
 
-export type LoginType = 'PASSWORD' | 'SMS' | 'OAUTH' | 'LOGOUT'
-
 export interface LoginLogResp {
   id: number
   traceId: string | null
   userId: string | null
   username: string | null
-  loginType: LoginType
+  loginType: string
   loginIp: string | null
   loginLocation: string | null
   browser: string | null
   os: string | null
-  status: LogStatus
+  status: string
   message: string | null
   createdAt: string
 }

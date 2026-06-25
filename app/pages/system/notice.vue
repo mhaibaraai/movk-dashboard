@@ -4,7 +4,7 @@ import type { FormSubmitEvent, InferInput } from '@nuxt/ui'
 import type { z } from 'zod'
 import { UBadge } from '#components'
 import type { NoticeCreateReq, NoticeUpdateReq } from '~/api/system/notice'
-import { NOTICE_TYPE_COLOR, NOTICE_TYPE_LABEL, ENABLED_DISABLED_COLOR, ENABLED_DISABLED_LABEL } from '~/constants/system'
+import { DICT_TYPE } from '~/constants/dict'
 
 const { notices, pending, handleCreate, handleUpdate, handleDelete, handleDeleteBatch, getDetail } = useNoticeList()
 const { afz } = useAutoForm()
@@ -14,19 +14,19 @@ const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle
 const pagination = ref<PaginationState>({ pageIndex: 0, pageSize: 10 })
 const rowSelectionKeys = ref<string[]>([])
 
-const typeItems = [{ label: '通知', value: 'NOTICE' }, { label: '公告', value: 'ANNOUNCEMENT' }]
-const statusItems = [{ label: '启用', value: 'ENABLED' }, { label: '禁用', value: 'DISABLED' }]
+const typeDict = useDict(DICT_TYPE.noticeType)
+const statusDict = useDict(DICT_TYPE.normalDisable)
 
 // 顶部搜索（后端无业务 query，客户端过滤）
 const searchSchema = afz.object({
   noticeTitle: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-megaphone', label: '公告标题' } }).optional(),
-  noticeType: afz.enum(['NOTICE', 'ANNOUNCEMENT'], {
+  noticeType: afz.enum([], {
     type: 'selectMenu',
-    controlProps: { icon: 'i-lucide-tag', placeholder: '类型', clear: true, valueKey: 'value', items: typeItems }
+    controlProps: () => ({ icon: 'i-lucide-tag', placeholder: '类型', clear: true, valueKey: 'value', items: typeDict.options.value })
   }).optional(),
-  status: afz.enum(['ENABLED', 'DISABLED'], {
+  status: afz.enum([], {
     type: 'selectMenu',
-    controlProps: { icon: 'i-lucide-toggle-left', placeholder: '状态', clear: true, valueKey: 'value', items: statusItems }
+    controlProps: () => ({ icon: 'i-lucide-toggle-left', placeholder: '状态', clear: true, valueKey: 'value', items: statusDict.options.value })
   }).optional()
 })
 type NoticeSearch = z.output<typeof searchSchema>
@@ -59,10 +59,10 @@ const state = ref<Partial<NoticeCreateReq>>({})
 const schema = afz.object({
   noticeTitle: afz.string({ controlProps: { placeholder: '请输入公告标题' } })
     .min(1, '请输入公告标题').max(100, '最多 100 字').meta({ label: '公告标题' }),
-  noticeType: afz.enum(['NOTICE', 'ANNOUNCEMENT'], { controlProps: { valueKey: 'value', items: typeItems } })
-    .default('NOTICE').meta({ label: '类型' }),
-  status: afz.enum(['ENABLED', 'DISABLED'], { controlProps: { valueKey: 'value', items: statusItems } })
-    .default('ENABLED').meta({ label: '状态' }),
+  noticeType: afz.enum([], { type: 'selectMenu', controlProps: () => ({ valueKey: 'value', items: typeDict.options.value }) })
+    .meta({ label: '类型' }),
+  status: afz.enum([], { type: 'selectMenu', controlProps: () => ({ valueKey: 'value', items: statusDict.options.value }) })
+    .meta({ label: '状态' }),
   noticeContent: afz.string({ type: 'textarea', controlProps: { rows: 8, placeholder: '请输入公告内容' } })
     .max(10000, '最多 10000 字').optional().meta({ label: '内容' })
 })
@@ -71,7 +71,7 @@ type NoticeSchema = z.output<typeof schema>
 function openCreate() {
   isEditing.value = false
   editingId.value = null
-  state.value = { noticeType: 'NOTICE', status: 'ENABLED' }
+  state.value = { noticeType: typeDict.defaultValue.value, status: statusDict.defaultValue.value }
   isOpen.value = true
 }
 async function openEdit(id: string) {
@@ -130,8 +130,8 @@ const columns: DataTableColumn<NoticeResp>[] = [
     header: '类型',
     cell: ({ row }) => h(
       UBadge,
-      { color: NOTICE_TYPE_COLOR[row.original.noticeType] ?? 'neutral', variant: 'subtle' },
-      () => NOTICE_TYPE_LABEL[row.original.noticeType] ?? row.original.noticeType
+      { color: typeDict.getColor(row.original.noticeType), variant: 'subtle' },
+      () => typeDict.getLabel(row.original.noticeType)
     )
   },
   {
@@ -139,8 +139,8 @@ const columns: DataTableColumn<NoticeResp>[] = [
     header: '状态',
     cell: ({ row }) => h(
       UBadge,
-      { color: ENABLED_DISABLED_COLOR[row.original.status] ?? 'neutral', variant: 'subtle' },
-      () => ENABLED_DISABLED_LABEL[row.original.status] ?? row.original.status
+      { color: statusDict.getColor(row.original.status), variant: 'subtle' },
+      () => statusDict.getLabel(row.original.status)
     )
   },
   {
@@ -226,13 +226,13 @@ const columns: DataTableColumn<NoticeResp>[] = [
       <template #body>
         <AppDescriptions v-if="detail" :items="detailItems">
           <template #noticeType>
-            <UBadge :color="NOTICE_TYPE_COLOR[detail?.noticeType ?? ''] ?? 'neutral'" variant="subtle">
-              {{ NOTICE_TYPE_LABEL[detail?.noticeType ?? ''] ?? detail?.noticeType }}
+            <UBadge :color="typeDict.getColor(detail?.noticeType)" variant="subtle">
+              {{ typeDict.getLabel(detail?.noticeType) }}
             </UBadge>
           </template>
           <template #status>
-            <UBadge :color="ENABLED_DISABLED_COLOR[detail?.status ?? ''] ?? 'neutral'" variant="subtle">
-              {{ ENABLED_DISABLED_LABEL[detail?.status ?? ''] ?? detail?.status }}
+            <UBadge :color="statusDict.getColor(detail?.status)" variant="subtle">
+              {{ statusDict.getLabel(detail?.status) }}
             </UBadge>
           </template>
         </AppDescriptions>

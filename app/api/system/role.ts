@@ -2,10 +2,10 @@ export interface RoleCreateReq {
   code: string
   name: string
   roleSort?: number
-  dataScope?: 'ALL' | 'DEPT' | 'DEPT_AND_CHILD' | 'SELF' | 'CUSTOM'
+  dataScope?: string
   dataScopeDeptIds?: string[]
-  status?: 'ENABLED' | 'DISABLED'
-  roleType?: 'BUILT_IN' | 'CUSTOM'
+  status?: string
+  roleType?: string
   menuIds?: string[]
   remark?: string
 }
@@ -13,10 +13,10 @@ export interface RoleCreateReq {
 export interface RoleUpdateReq {
   name?: string
   roleSort?: number
-  dataScope?: 'ALL' | 'DEPT' | 'DEPT_AND_CHILD' | 'SELF' | 'CUSTOM'
+  dataScope?: string
   dataScopeDeptIds?: string[]
-  status?: 'ENABLED' | 'DISABLED'
-  roleType?: 'BUILT_IN' | 'CUSTOM'
+  status?: string
+  roleType?: string
   menuIds?: string[]
   remark?: string
 }
@@ -24,8 +24,8 @@ export interface RoleUpdateReq {
 export interface RoleListQuery {
   code?: string
   name?: string
-  status?: 'ENABLED' | 'DISABLED'
-  roleType?: 'BUILT_IN' | 'CUSTOM'
+  status?: string
+  roleType?: string
   createdAtStart?: string
   createdAtEnd?: string
   page?: number

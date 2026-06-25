@@ -13,7 +13,6 @@ export function useUserList() {
     '/v1/system/users',
     {
       query,
-      watch: [query],
       toast: false
     }
   )

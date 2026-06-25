@@ -6,7 +6,7 @@ export interface DeptCreateReq {
   leaderUserId?: string
   phone?: string
   email?: string
-  status?: 'ENABLED' | 'DISABLED'
+  status?: string
 }
 
 export type DeptUpdateReq = DeptCreateReq

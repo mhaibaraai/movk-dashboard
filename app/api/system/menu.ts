@@ -1,6 +1,6 @@
 export interface MenuCreateReq {
   parentId?: string
-  type: 'DIRECTORY' | 'MENU' | 'BUTTON'
+  type: string
   name: string
   orderNum?: number
   path?: string
@@ -10,7 +10,7 @@ export interface MenuCreateReq {
   isCache?: boolean
   permissionCode?: string
   visible?: boolean
-  status?: 'ENABLED' | 'DISABLED'
+  status?: string
   icon?: string
   remark?: string
 }

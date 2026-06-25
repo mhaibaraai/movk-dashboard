@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import { UBadge } from '#components'
 import type { DataTableColumn } from '@movk/nuxt'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { z } from 'zod'
-import { UBadge } from '#components'
-import { LOG_STATUS_COLOR, LOG_STATUS_LABEL, LOG_STATUS_QUERY } from '~/constants/monitor'
+import { DICT_TYPE, LOG_STATUS_QUERY } from '~/constants/dict'
 
 const { logs, total, pending, query, handleClean, getDetail, handlePagination, handleSearch } = useOperateLogList()
 const { afz } = useAutoForm()
@@ -11,14 +11,14 @@ const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle
 
 const pagination = useTablePagination(query.value.size ?? 20, handlePagination)
 
-const statusItems = [{ label: '成功', value: 'SUCCESS' }, { label: '失败', value: 'FAILURE' }]
+const statusDict = useDict(DICT_TYPE.businessStatus)
 
 const searchSchema = afz.object({
   module: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-package', label: '模块' } }).optional(),
   operation: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-mouse-pointer-click', label: '操作' } }).optional(),
-  status: afz.enum(['SUCCESS', 'FAILURE'], {
+  status: afz.enum([], {
     type: 'selectMenu',
-    controlProps: { icon: 'i-lucide-toggle-left', placeholder: '状态', clear: true, valueKey: 'value', items: statusItems }
+    controlProps: () => ({ icon: 'i-lucide-toggle-left', placeholder: '状态', clear: true, valueKey: 'value', items: statusDict.options.value })
   }).optional(),
   startTime: afz.calendarDate({ controlProps: { labelFormat: 'iso', placeholder: '开始日期' } })
     .transform(d => formatter.toISO(d)).optional(),
@@ -82,8 +82,8 @@ const columns: DataTableColumn<OperateLogResp>[] = [
     header: '状态',
     cell: ({ row }) => h(
       UBadge,
-      { color: LOG_STATUS_COLOR[row.original.status] ?? 'neutral', variant: 'subtle' },
-      () => LOG_STATUS_LABEL[row.original.status] ?? row.original.status
+      { color: statusDict.getColor(row.original.status), variant: 'subtle' },
+      () => statusDict.getLabel(row.original.status)
     )
   },
   {

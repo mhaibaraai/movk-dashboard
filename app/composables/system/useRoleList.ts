@@ -13,7 +13,6 @@ export function useRoleList() {
     '/v1/system/roles',
     {
       query,
-      watch: [query],
       toast: false
     }
   )
