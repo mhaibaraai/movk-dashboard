@@ -6,7 +6,7 @@ import { UBadge } from '#components'
 import { useFileApi } from '~/api/system/file'
 
 const {
-  files, total, pending, query,
+  files, total, pending, query, categories,
   handleDelete, handleDeleteBatch, handlePagination, handleSearch, refresh, getDetail
 } = useFileList()
 const fileApi = useFileApi()
@@ -21,8 +21,16 @@ const rowSelectionKeys = ref<string[]>([])
 // 顶部搜索（服务端 query）
 const searchSchema = afz.object({
   originalName: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-file', label: '文件名' } }).optional(),
-  category: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-folder', label: '分类' } }).optional(),
-  contentType: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-file-type', label: '类型' } }).optional()
+  contentType: afz.string({ type: 'withFloatingLabel', controlProps: { icon: 'i-lucide-file-type', label: '类型' } }).optional(),
+  category: afz.enum([], {
+    type: 'selectMenu',
+    controlProps: () => ({
+      icon: 'i-lucide-folder',
+      placeholder: '分类',
+      clear: true,
+      items: categories.value
+    })
+  }).optional()
 })
 type FileSearch = z.output<typeof searchSchema>
 const searchState = ref<Partial<FileSearch>>({})

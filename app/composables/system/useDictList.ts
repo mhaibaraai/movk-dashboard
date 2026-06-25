@@ -3,8 +3,6 @@ import type { DictTypeCreateReq, DictTypeUpdateReq, DictDataCreateReq, DictDataU
 
 export function useDictList() {
   const dictApi = useDictApi()
-
-  // 字典数据：按选中类型拉取
   const selectedType = ref<string>()
 
   // 字典类型：全量列表
@@ -17,14 +15,12 @@ export function useDictList() {
     '/v1/system/dicts/data',
     {
       query: { dictType: selectedType },
-      immediate: false,
-      server: false
+      immediate: false
     }
   )
   const dictData = computed(() => dictDataResp.value ?? [])
 
-  onMounted(() => {
-    selectedType.value = dictTypes.value?.[0]?.dictType
+  watch(selectedType, () => {
     refreshData()
   })
 

@@ -17,7 +17,7 @@ export type DictTypeKey = typeof DICT_TYPE[keyof typeof DICT_TYPE]
 // 列表 query 的 status 为 int：成功 1 / 失败 0（字典只存字符串枚举，查询转换保留在前端）
 export const LOG_STATUS_QUERY: Record<string, number> = {
   SUCCESS: 1,
-  FAILURE: 0
+  FAILURE: 2
 }
 
 export const MENU_TYPE_ICON: Record<string, string> = {

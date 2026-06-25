@@ -6,6 +6,10 @@ export function useFileList() {
 
   const query = ref<FileListQuery>({ page: 0, size: 10 })
 
+  const { data: categories } = useApiFetch<string[]>('/v1/system/files/categories', {
+    toast: false
+  })
+
   const { data, pending, refresh } = useApiFetch<PageResp<FileResp>>('/v1/system/files', {
     query,
     toast: false
@@ -36,6 +40,7 @@ export function useFileList() {
 
   return {
     query: readonly(query),
+    categories,
     files,
     total,
     pending,
