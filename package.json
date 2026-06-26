@@ -1,8 +1,32 @@
 {
   "name": "@movk/dashboard",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.8.0",
+  "description": "基于 Nuxt 4 + @movk/nuxt + @nuxt/ui v4 的 RBAC 管理后台",
+  "author": "mhaibaraai",
+  "license": "MIT",
+  "homepage": "https://dashboard.mhaibaraai.cn",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mhaibaraai/movk-dashboard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mhaibaraai/movk-dashboard/issues"
+  },
+  "keywords": [
+    "nuxt",
+    "nuxt4",
+    "vue",
+    "typescript",
+    "rbac",
+    "dashboard",
+    "admin",
+    "nuxt-ui",
+    "tailwindcss",
+    "zod"
+  ],
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
   },
@@ -20,7 +44,7 @@
     "@iconify-json/lucide": "^1.2.114",
     "@iconify-json/simple-icons": "^1.2.87",
     "@movk/core": "^1.3.1",
-    "@movk/nuxt": "https://pkg.pr.new/@movk/nuxt@689fdd1",
+    "@movk/nuxt": "^1.4.2",
     "@nuxt/ui": "^4.9.0",
     "@vueuse/nuxt": "^14.3.0",
     "cookie-es": "^3.1.1",
