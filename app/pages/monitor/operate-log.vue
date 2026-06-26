@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { UBadge } from '#components'
+import { omitUndefined } from '@movk/core'
 import type { DataTableColumn } from '@movk/nuxt'
 import type { FormSubmitEvent } from '@nuxt/ui'
+import { withQuery } from 'ufo'
 import type { z } from 'zod'
 import { DICT_TYPE, LOG_STATUS_QUERY } from '~/constants/dict'
 
@@ -23,7 +25,7 @@ const searchSchema = afz.object({
   dateRange: afz.calendarDate({
     controlProps: {
       range: true,
-      labelFormat: 'iso',
+      labelFormat: 'date',
       valueFormat: 'iso',
       icon: 'i-lucide-calendar',
       placeholder: '日期范围',
@@ -50,15 +52,11 @@ function onSearchReset() {
 // 导出（携带当前筛选）
 const { download, status: exportStatus } = useDownloadWithProgress()
 function onExport() {
-  const params = new URLSearchParams()
-  const q = query.value
-  if (q.module) params.set('module', q.module)
-  if (q.operation) params.set('operation', q.operation)
-  if (q.status !== undefined) params.set('status', String(q.status))
-  if (q.startTime) params.set('startTime', q.startTime)
-  if (q.endTime) params.set('endTime', q.endTime)
-  const qs = params.toString()
-  download(`/v1/monitor/operate-logs/export${qs ? `?${qs}` : ''}`, { filename: 'operate-logs.xlsx' })
+  const { module, operation, status, startTime, endTime } = query.value
+  download(
+    withQuery('/v1/monitor/operate-logs/export', omitUndefined({ module, operation, status, startTime, endTime })),
+    { filename: 'operate-logs.xlsx' }
+  )
 }
 
 // 清理
