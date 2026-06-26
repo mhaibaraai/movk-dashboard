@@ -2,7 +2,7 @@
 export default defineNuxtRouteMiddleware((to) => {
   const { homeRoute, sectionRedirects } = useNavigation()
 
-  // 首页 → 用户首个可用菜单（原 index.vue setup 逻辑收敛至此）
+  // 首页 → 合并导航首项；首项即 / 时（工作台置顶）守卫短路，直接渲染工作台
   if (to.path === '/') {
     if (homeRoute.value && homeRoute.value !== '/')
       return navigateTo(homeRoute.value, { replace: true })

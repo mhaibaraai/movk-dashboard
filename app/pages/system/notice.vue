@@ -143,6 +143,7 @@ const columns: DataTableColumn<NoticeResp>[] = [
       () => statusDict.getLabel(row.original.status)
     )
   },
+  { accessorKey: 'noticeContent', header: '内容', tooltip: true, size: 400 },
   {
     accessorKey: 'createdAt',
     header: '创建时间',

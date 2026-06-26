@@ -1,21 +1,6 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
 import { Tree } from '@movk/core'
-
-// 底部固定入口（非业务菜单，不随权限变化）
-const bottomGroup: NavigationMenuItem[] = [
-  {
-    label: '反馈',
-    icon: 'i-lucide-message-circle',
-    to: 'https://github.com/mhaibaraai/movk-nuxt-dashboard',
-    target: '_blank'
-  },
-  {
-    label: '帮助与支持',
-    icon: 'i-lucide-info',
-    to: 'https://github.com/mhaibaraai/movk-nuxt-dashboard',
-    target: '_blank'
-  }
-]
+import { BOTTOM_MENUS, STATIC_MENUS, STATIC_PATHS } from '~/constants/navigation'
 
 // 动态/参数路由不作为登录后落地首选
 function hasRouteParams(path: string): boolean {
@@ -28,16 +13,20 @@ export function useNavigation() {
   // 菜单树单一来源：导航、访问白名单、落地路由共用
   const menus = computed<MenuTreeResp[]>(() => (currentUser.value?.menus ?? []) as MenuTreeResp[])
 
-  // 可访问路径白名单：取全部菜单 path（visible 仅控显隐，不等于不可访问，隐藏页仍可直达）
+  // 可访问路径白名单：静态路由 + 全部菜单 path（visible 仅控显隐，不等于不可访问，隐藏页仍可直达）
   const accessiblePaths = computed<Set<string>>(() => {
     const paths = Tree.toList(menus.value)
       .map(node => node.path)
       .filter((path): path is string => Boolean(path))
-    return new Set(paths)
+    return new Set([...STATIC_PATHS, ...paths])
   })
 
-  // 登录后落地：首个可见叶子菜单（非目录、非参数路由），前序 DFS 取首位
+  // 登录后落地：合并导航首项 —— 静态首项优先，回退到后端首个可见叶子（非目录、非参数路由），前序 DFS 取首位
   const homeRoute = computed<string | undefined>(() => {
+    const staticFirst = STATIC_MENUS.find(menu =>
+      typeof menu.to === 'string' && !hasRouteParams(menu.to))?.to as string | undefined
+    if (staticFirst) return staticFirst
+
     const flat = Tree.toList(menus.value)
     const parentIds = new Set(flat.map(node => node.parentId).filter(Boolean))
     return flat.find(node =>
@@ -74,7 +63,7 @@ export function useNavigation() {
     }) as NavigationMenuItem[]
   })
 
-  const navigation = computed<NavigationMenuItem[][]>(() => [mainNavigation.value, bottomGroup])
+  const navigation = computed<NavigationMenuItem[][]>(() => [[...STATIC_MENUS, ...mainNavigation.value], BOTTOM_MENUS])
 
   // 侧边栏：去掉子项图标，保持与原视觉一致
   const groups = computed<NavigationMenuItem[][]>(() =>

@@ -19,13 +19,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // 已登录用户访问登录页 → 重定向首页
   if (loggedIn.value && path === cert.loginPath) return navigateTo('/')
 
-  // 公开路由放行（loginPath 自动包含）
-  const isPublic = [cert.loginPath, ...(cert.publicRoutes || [])].some((route: string) =>
-    route.endsWith('/*')
-      ? path.startsWith(route.slice(0, -2))
-      : path === route
-  )
-  if (isPublic) return
+  // 免登录页面放行（access: 'public'，如登录/注册）
+  if (to.meta.access === 'public') return
 
   // 未登录用户 → 重定向登录页
   if (!session.value?.jwt) return navigateTo(cert.loginPath)

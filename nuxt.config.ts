@@ -22,8 +22,7 @@ export default defineNuxtConfig({
     public: {
       cert: {
         enabled: true,
-        loginPath: '/login',
-        publicRoutes: ['/register']
+        loginPath: '/login'
       }
     }
   },

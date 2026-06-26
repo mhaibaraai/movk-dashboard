@@ -4,7 +4,7 @@ import type { z } from 'zod'
 
 definePageMeta({
   layout: 'cert',
-  public: true
+  access: 'public'
 })
 
 const { fetch: fetchSession } = useUserSession()
