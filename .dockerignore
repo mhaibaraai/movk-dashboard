@@ -1,0 +1,3 @@
+# 构建在 CI runner 完成,镜像只打包 .output
+*
+!.output
