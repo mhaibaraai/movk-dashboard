@@ -45,6 +45,12 @@ const selectedFiles = ref<File[] | null>(null)
 const uploadCategory = ref('')
 const { status: uploadStatus, progress: uploadProgress, upload, abort } = useUploadWithProgress<FileUploadResp[]>()
 
+function onCategoryCreate(category: string) {
+  if (!category) return
+  categories.value = [...(categories.value ?? []), category]
+  uploadCategory.value = category
+}
+
 function openUpload() {
   selectedFiles.value = null
   uploadCategory.value = ''
@@ -234,7 +240,15 @@ const columns: DataTableColumn<FileResp>[] = [
     <UModal v-model:open="isUploadOpen" title="上传文件">
       <template #body>
         <div class="flex flex-col gap-4">
-          <UInput v-model="uploadCategory" icon="i-lucide-folder" placeholder="文件分类（可选）" />
+          <USelectMenu
+            v-model="uploadCategory"
+            placeholder="选择分类"
+            clear
+            :items="categories ?? []"
+            icon="i-lucide-folder"
+            create-item
+            @create="onCategoryCreate"
+          />
           <UFileUpload v-model="selectedFiles" multiple :description="'支持多文件上传'" />
           <UProgress v-if="uploadStatus === 'pending'" :model-value="uploadProgress ?? undefined" :max="100" />
         </div>
