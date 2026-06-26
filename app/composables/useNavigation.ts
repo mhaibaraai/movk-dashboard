@@ -48,6 +48,18 @@ export function useNavigation() {
     )?.path ?? undefined
   })
 
+  // 父级 path → 子树首个可达叶子 path（供中间件做 section 重定向）
+  const sectionRedirects = computed<Map<string, string>>(() => {
+    const result = new Map<string, string>()
+    Tree.forEach(menus.value, ({ node }) => {
+      if (!node.path || !node.children?.length) return // 仅父级节点
+      const leaf = Tree.find(node.children, ({ node: n }) =>
+        !n.children?.length && !!n.path && n.visible !== false && !hasRouteParams(n.path))
+      if (leaf?.path && leaf.path !== node.path) result.set(node.path, leaf.path)
+    })
+    return result
+  })
+
   // 主导航由当前用户的路由菜单树（/v1/auth/me 的 menus）动态生成，层级随后端配置
   const mainNavigation = computed<NavigationMenuItem[]>(() => {
     const visibleMenus = Tree.filter(menus.value, ({ node }) => node.visible !== false)
@@ -80,5 +92,5 @@ export function useNavigation() {
     return mainNavigation.value.find(item => item.to === basePath)?.children ?? []
   }
 
-  return { navigation, groups, getSectionLinks, accessiblePaths, homeRoute }
+  return { navigation, groups, getSectionLinks, accessiblePaths, homeRoute, sectionRedirects }
 }
