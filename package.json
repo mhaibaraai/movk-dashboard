@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@11.8.0",
+  "packageManager": "pnpm@11.9.0",
   "description": "基于 Nuxt 4 + @movk/nuxt + @nuxt/ui v4 的 RBAC 管理后台",
   "author": "mhaibaraai",
   "license": "MIT",
@@ -55,8 +55,8 @@
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.16.0",
-    "@types/node": "^26.0.0",
-    "eslint": "^10.5.0",
+    "@types/node": "^26.0.1",
+    "eslint": "^10.6.0",
     "typescript": "^6.0.3",
     "vue-tsc": "^3.3.5"
   }
