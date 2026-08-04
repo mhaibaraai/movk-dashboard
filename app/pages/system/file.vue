@@ -6,7 +6,7 @@ import { UBadge } from '#components'
 import { useFileApi } from '~/api/system/file'
 
 const {
-  files, total, pending, query, categories,
+  files, total, pending, query, categories, addCategory,
   handleDelete, handleDeleteBatch, handlePagination, handleSearch, refresh, getDetail
 } = useFileList()
 const fileApi = useFileApi()
@@ -47,7 +47,7 @@ const { status: uploadStatus, progress: uploadProgress, upload, abort } = useUpl
 
 function onCategoryCreate(category: string) {
   if (!category) return
-  categories.value = [...(categories.value ?? []), category]
+  addCategory(category)
   uploadCategory.value = category
 }
 

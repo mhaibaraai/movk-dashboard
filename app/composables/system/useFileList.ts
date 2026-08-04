@@ -6,9 +6,17 @@ export function useFileList() {
 
   const query = ref<FileListQuery>({ page: 0, size: 10 })
 
-  const { data: categories } = useApiFetch<string[]>('/v1/system/files/categories', {
+  const { data: categoryData } = useApiFetch<string[]>('/v1/system/files/categories', {
     toast: false
   })
+
+  const categories = computed(() => categoryData.value ?? [])
+
+  // 上传时可临时新建分类，写回本地列表供下拉展示
+  function addCategory(category: string) {
+    if (!category || categories.value.includes(category)) return
+    categoryData.value = [...categories.value, category]
+  }
 
   const { data, pending, refresh } = useApiFetch<PageResp<FileResp>>('/v1/system/files', {
     query,
@@ -41,6 +49,7 @@ export function useFileList() {
   return {
     query: readonly(query),
     categories,
+    addCategory,
     files,
     total,
     pending,

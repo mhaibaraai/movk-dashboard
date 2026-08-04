@@ -18,12 +18,12 @@ const formatter = useDateFormatter({ locale: 'zh-CN', formatOptions: { dateStyle
 
 const statusDict = useDict(DICT_TYPE.normalDisable)
 const listClassItems = [
-  { label: '默认', value: 'neutral', chip: { color: 'neutral' } },
-  { label: '主要', value: 'primary', chip: { color: 'primary' } },
-  { label: '成功', value: 'success', chip: { color: 'success' } },
-  { label: '信息', value: 'info', chip: { color: 'info' } },
-  { label: '警告', value: 'warning', chip: { color: 'warning' } },
-  { label: '危险', value: 'error', chip: { color: 'error' } }
+  { label: '默认', value: 'neutral', chip: { color: 'neutral' as const } },
+  { label: '主要', value: 'primary', chip: { color: 'primary' as const } },
+  { label: '成功', value: 'success', chip: { color: 'success' as const } },
+  { label: '信息', value: 'info', chip: { color: 'info' as const } },
+  { label: '警告', value: 'warning', chip: { color: 'warning' as const } },
+  { label: '危险', value: 'error', chip: { color: 'error' as const } }
 ]
 
 // 类型搜索（客户端过滤）
@@ -342,7 +342,7 @@ const dataColumns: DataTableColumn<DictDataResp>[] = [
         select-on-row-click
         :show-column-settings="false"
         :pagination-ui="{ show: false }"
-        @update:row-selection-keys="(v : string) => selectedType = v[0]"
+        @update:row-selection-keys="(v: string[]) => selectedType = v[0]"
       />
     </div>
 
