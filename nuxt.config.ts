@@ -13,6 +13,7 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   ui: {
+    fonts: false,
     experimental: {
       componentDetection: true
     }
@@ -56,6 +57,12 @@ export default defineNuxtConfig({
   },
 
   movk: {
+    theme: {
+      font: 'alibaba-puhuiti',
+      fonts: [
+        { name: 'alibaba-puhuiti', href: 'https://cdn.mhaibaraai.cn/fonts/alibaba-puhuiti.css' }
+      ]
+    },
     api: {
       auth: {
         enabled: true,
