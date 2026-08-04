@@ -3,12 +3,11 @@ import { zh_cn } from '@nuxt/ui/locale'
 
 const appConfig = useAppConfig()
 
-const { color, style, link } = useTheme()
+const { color, style } = useTheme()
 
 useHead({
   title: 'Movk Dashboard',
   meta: [{ key: 'theme-color', name: 'theme-color', content: color }],
-  link,
   style
 })
 

@@ -20,8 +20,6 @@ const {
   neutral,
   radiuses,
   radius,
-  fonts,
-  font,
   icons,
   icon,
   modes,
@@ -120,19 +118,6 @@ const items = computed<DropdownMenuItem[][]>(() => ([[{
       e.preventDefault()
 
       radius.value = r
-    }
-  }))
-}, {
-  label: '字体',
-  icon: 'i-lucide-type',
-  children: fonts.map(f => ({
-    label: f,
-    type: 'checkbox',
-    checked: font.value === f,
-    onSelect: (e) => {
-      e.preventDefault()
-
-      font.value = f
     }
   }))
 }, {
