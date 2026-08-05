@@ -15,7 +15,6 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   ui: {
-    fonts: false,
     experimental: {
       componentDetection: true
     }
@@ -55,15 +54,15 @@ export default defineNuxtConfig({
   icon: {
     customCollections: [
       { prefix: 'custom', dir: './app/assets/icons' }
-    ]
+    ],
+    clientBundle: {
+      scan: { globInclude: ['**/*.{vue,jsx,tsx,ts,md,mdc,mdx,yml,yaml}'] }
+    }
   },
 
   movk: {
     theme: {
-      font: 'alibaba-puhuiti',
-      fonts: [
-        { name: 'alibaba-puhuiti', href: 'https://cdn.mhaibaraai.cn/fonts/alibaba-puhuiti.css' }
-      ]
+      font: 'Alibaba PuHuiTi'
     },
     api: {
       auth: {
