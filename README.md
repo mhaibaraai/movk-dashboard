@@ -31,7 +31,7 @@
 - [Tailwind CSS v4](https://tailwindcss.com/)、[Zod v4](https://zod.dev/)
 - [`@nuxt/ui` v4](https://ui.nuxt.com/)(基础组件 `U*`)
 - [`@movk/nuxt`](https://github.com/mhaibaraai/movk-nuxt)(`MDataTable` / `MSearchForm` / `MAutoForm` / `useApiFetch` 等复合能力)
-- `@movk/core`(`Tree` 等工具)、[VueUse](https://vueuse.org/)、[Iconify](https://iconify.design/)(Lucide / Simple Icons)
+- `@movk/core`(`Tree` 等工具)、[VueUse](https://vueuse.org/)、[Iconify](https://iconify.design/)(Lucide / Phosphor / Tabler / Simple Icons)
 
 ## 📁 目录结构
 

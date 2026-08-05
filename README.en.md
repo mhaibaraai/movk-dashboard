@@ -31,7 +31,7 @@ English | [简体中文](./README.md)
 - [Tailwind CSS v4](https://tailwindcss.com/), [Zod v4](https://zod.dev/)
 - [`@nuxt/ui` v4](https://ui.nuxt.com/) (base `U*` components)
 - [`@movk/nuxt`](https://github.com/mhaibaraai/movk-nuxt) (`MDataTable` / `MSearchForm` / `MAutoForm` / `useApiFetch`, etc.)
-- `@movk/core` (`Tree` and other utilities), [VueUse](https://vueuse.org/), [Iconify](https://iconify.design/) (Lucide / Simple Icons)
+- `@movk/core` (`Tree` and other utilities), [VueUse](https://vueuse.org/), [Iconify](https://iconify.design/) (Lucide / Phosphor / Tabler / Simple Icons)
 
 ## 📁 Project Structure
 

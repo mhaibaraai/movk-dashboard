@@ -54,7 +54,10 @@ export default defineNuxtConfig({
   icon: {
     customCollections: [
       { prefix: 'custom', dir: './app/assets/icons' }
-    ]
+    ],
+    clientBundle: {
+      scan: { globInclude: ['**/*.{vue,jsx,tsx,ts,md,mdc,mdx,yml,yaml}'] }
+    }
   },
 
   movk: {
