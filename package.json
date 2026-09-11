@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@11.20.0",
+  "packageManager": "pnpm@12.4.1",
   "description": "基于 Nuxt 4 + @movk/nuxt + @nuxt/ui v4 的 RBAC 管理后台",
   "author": "mhaibaraai",
   "license": "MIT",
