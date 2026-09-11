@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@11.20.0",
+  "packageManager": "pnpm@11.26.0",
   "description": "基于 Nuxt 4 + @movk/nuxt + @nuxt/ui v4 的 RBAC 管理后台",
   "author": "mhaibaraai",
   "license": "MIT",
@@ -41,11 +41,11 @@
     "clean": "movk-clean"
   },
   "dependencies": {
-    "@iconify-json/lucide": "^1.2.121",
-    "@iconify-json/simple-icons": "^1.2.93",
+    "@iconify-json/lucide": "^1.2.131",
+    "@iconify-json/simple-icons": "^1.2.95",
     "@movk/core": "^1.4.1",
-    "@movk/nuxt": "^1.7.0",
-    "@nuxt/ui": "^4.10.0",
+    "@movk/nuxt": "^1.8.1",
+    "@nuxt/ui": "^4.11.1",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "@vueuse/nuxt": "^14.4.0",
@@ -53,15 +53,15 @@
     "nuxt": "^4.5.1",
     "tailwindcss": "^4.3.3",
     "ufo": "^1.6.4",
-    "zod": "^4.4.3"
+    "zod": "^4.6.2"
   },
   "devDependencies": {
     "@iconify-json/ph": "^1.2.2",
     "@iconify-json/tabler": "^1.2.38",
-    "@nuxt/eslint": "^1.16.0",
-    "@types/node": "^26.1.2",
-    "eslint": "^10.8.0",
+    "@nuxt/eslint": "^1.17.0",
+    "@types/node": "^26.5.1",
+    "eslint": "^10.10.0",
     "typescript": "^6.0.3",
-    "vue-tsc": "^3.3.9"
+    "vue-tsc": "^3.3.11"
   }
 }
