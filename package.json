@@ -48,7 +48,7 @@
     "@nuxt/ui": "^4.10.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
-    "@vueuse/nuxt": "^14.4.0",
+    "@vueuse/nuxt": "^15.0.0",
     "cookie-es": "^3.1.1",
     "nuxt": "^4.5.1",
     "tailwindcss": "^4.3.3",
